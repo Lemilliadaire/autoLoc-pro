@@ -1,0 +1,121 @@
+/* src/App.css */
+:root {
+  /* Color Palette - Professional & Modern */
+  --primary-color: #2563EB;
+  /* Royal Blue */
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+
+  --secondary-color: #475569;
+  /* Slate */
+  --secondary-hover: #334155;
+
+  --success-color: #059669;
+  /* Emerald */
+  --warning-color: #D97706;
+  /* Amber */
+  --danger-color: #DC2626;
+  /* Red */
+
+  --body-bg: #F8FAFC;
+  /* Very Light Slate */
+  --surface-bg: #FFFFFF;
+
+  --dark-text: #1E293B;
+  /* Slate 800 */
+  --heading-color: #0F172A;
+  /* Slate 900 */
+  --muted-text: #64748B;
+  /* Slate 500 */
+
+  --border-color: #E2E8F0;
+  --border-radius: 0.75rem;
+  /* 12px */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Bootstrap Overrides */
+
+.btn {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.card {
+  background-color: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* Utility Classes */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-color), #4F46E5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4F46E5 100%);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}

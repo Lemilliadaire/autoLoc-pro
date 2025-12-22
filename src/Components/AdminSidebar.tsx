@@ -17,6 +17,14 @@ import './Sidebar.css';
 const AdminSidebar: React.FC = () => {
     const { user } = useAuth();
 
+    const getPhotoUrl = (photo: string | undefined) => {
+        if (!photo) return null;
+        if (photo.startsWith('http')) return photo;
+        const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
+            photo.startsWith('storage/') ? photo.substring(8) : photo;
+        return `http://127.0.0.1:8000/storage/${cleanPath}`;
+    };
+
     return (
         <div className="sidebar-wrapper">
             <div className="sidebar-header p-3 mb-2">
@@ -28,7 +36,7 @@ const AdminSidebar: React.FC = () => {
                     <div className="position-relative d-inline-block mb-2">
                         {user.photo ? (
                             <Image
-                                src={`http://127.0.0.1:8000/storage/${user.photo}?t=${new Date().getTime()}`}
+                                src={`${getPhotoUrl(user.photo)}?t=${new Date().getTime()}`}
                                 roundedCircle
                                 style={{ width: '60px', height: '60px', objectFit: 'cover' }}
                                 className="border border-2 border-primary border-opacity-25"

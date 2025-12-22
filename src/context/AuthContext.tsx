@@ -1,6 +1,8 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, type ReactNode } from "react";
 import { login, logout, me } from "../services/auth";
+import { getAdmins } from "../services/admin";
+import { getClients } from "../services/client";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import type { User } from "../types/api";
@@ -29,7 +31,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (token) {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       me(token)
-        .then(setUser)
+        .then(async (userData) => {
+          let updatedUser = { ...userData };
+          if (userData.role === 'admin') {
+            try {
+              const admins = await getAdmins();
+              const currentAdmin = admins.find(a => Number(a.user_id) === Number(userData.id));
+              if (currentAdmin) {
+                updatedUser.photo = currentAdmin.photo_url || currentAdmin.photo_profil || currentAdmin.photo;
+              }
+            } catch (err) { }
+          } else {
+            try {
+              const clients = await getClients(token);
+              const currentClient = clients.find(c => Number(c.user_id) === Number(userData.id));
+              if (currentClient) {
+                updatedUser.client = currentClient;
+                updatedUser.photo = currentClient.photo_url || currentClient.photo_profil || currentClient.photo;
+              }
+            } catch (err) { }
+          }
+          setUser(updatedUser);
+        })
         .catch(() => {
           setToken(null);
           localStorage.removeItem("token");
@@ -47,11 +70,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const data = await login(email, password);
       setToken(data.access_token);
       localStorage.setItem("token", data.access_token);
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
+
+      let finalUser = { ...data.user };
+      try {
+        const admins = await getAdmins();
+        const currentAdmin = admins.find(a => Number(a.user_id) === Number(finalUser.id));
+        if (currentAdmin) {
+          finalUser.photo = currentAdmin.photo_url || currentAdmin.photo_profil || currentAdmin.photo;
+        }
+      } catch (err) {
+      }
+      try {
+        const clients = await getClients(data.access_token);
+        const currentClient = clients.find(c => Number(c.user_id) === Number(finalUser.id));
+        if (currentClient) {
+          finalUser.client = currentClient;
+          finalUser.photo = currentClient.photo_url || currentClient.photo_profil || currentClient.photo;
+        }
+      } catch (err) {
+        console.error('Error fetching client during login sync:', err);
+      }
+
+
+      setUser(finalUser);
+      localStorage.setItem("user", JSON.stringify(finalUser));
 
       // Navigation en fonction du rôle
-      if (data.user.role === "admin") {
+      if (finalUser.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
@@ -83,7 +128,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (token) {
       try {
         const userData = await me(token);
-        setUser(userData);
+        let updatedUser = { ...userData };
+        if (userData.role === 'admin') {
+          try {
+            const admins = await getAdmins();
+            const currentAdmin = admins.find(a => Number(a.user_id) === Number(userData.id));
+            if (currentAdmin) {
+              updatedUser.photo = currentAdmin.photo_url || currentAdmin.photo_profil || currentAdmin.photo;
+            }
+          } catch (err) {
+            console.error('Error fetching admin during refresh sync:', err);
+          }
+        } else {
+          try {
+            const clients = await getClients(token);
+            const currentClient = clients.find(c => Number(c.user_id) === Number(userData.id));
+            if (currentClient) {
+              updatedUser.client = currentClient;
+              updatedUser.photo = currentClient.photo_url || currentClient.photo_profil || currentClient.photo;
+            }
+          } catch (err) {
+            console.error('Error fetching client during refresh sync:', err);
+          }
+        }
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       } catch (error) {
         console.error('Failed to refresh user:', error);
       }

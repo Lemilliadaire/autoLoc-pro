@@ -50,11 +50,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ show, onHide, voitu
             const diffTime = Math.abs(end.getTime() - start.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            if (diffDays > 0) {
-                setTotalPrice(diffDays * voiture.prix_journalier);
-            } else {
-                setTotalPrice(0);
-            }
+            // Si c'est le même jour, on compte au moins 1 jour (location de 24h)
+            const rentalDays = diffDays === 0 ? 1 : diffDays;
+            setTotalPrice(rentalDays * voiture.prix_journalier);
         }
     }, [dateDepart, dateRetour, voiture.prix_journalier]);
 
@@ -83,22 +81,34 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ show, onHide, voitu
 
         try {
             const reservationData = {
+                user_id: user.id,
                 voiture_id: voiture.id,
                 client_id: user.client.id,
                 agence_depart_id: parseInt(agenceDepart),
                 agence_retour_id: parseInt(agenceRetour),
+                agence_retrait_id: parseInt(agenceRetour),
                 date_depart: dateDepart,
                 date_retour: dateRetour,
+                date_debut: dateDepart,
+                date_fin: dateRetour,
                 statut: 'en_attente',
                 prix_total: totalPrice
             };
 
+            console.log('Sending reservation data:', reservationData);
+            console.log('Using token:', token ? 'Token exists' : 'No token');
+
             const response = await createReservation(reservationData);
+            console.log('Reservation response:', response);
             setReservationId(response.reservation.id);
             setStep('payment');
-        } catch (err) {
-            console.error(err);
-            setError("Erreur lors de la création de la réservation.");
+        } catch (err: any) {
+            console.error('Full Reservation Error:', err);
+            if (err.response) {
+                console.log('Error Data:', err.response.data);
+                console.log('Error Status:', err.response.status);
+            }
+            setError(err.response?.data?.message || "Erreur lors de la création de la réservation.");
         } finally {
             setLoading(false);
         }

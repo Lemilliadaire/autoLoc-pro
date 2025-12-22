@@ -72,11 +72,11 @@ const Footer: React.FC = () => {
                         <ul className="list-unstyled d-flex flex-column gap-3 mb-0">
                             <li className="d-flex align-items-center text-secondary">
                                 <GeoAlt className="me-2 text-primary" />
-                                123 Avenue de la République, Dakar
+                                123 Avenue de la République, Lomé, Togo
                             </li>
                             <li className="d-flex align-items-center text-secondary">
                                 <Telephone className="me-2 text-primary" />
-                                +221 33 123 45 67
+                                +228 79 80 89 15
                             </li>
                             <li className="d-flex align-items-center text-secondary">
                                 <Envelope className="me-2 text-primary" />

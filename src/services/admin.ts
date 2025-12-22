@@ -13,18 +13,17 @@ export const getAdmin = async (id: number): Promise<Admin> => {
 };
 
 export const updateAdminProfile = async (id: number, data: Partial<Admin> | any): Promise<Admin> => {
-    const response = await api.post(`/admins/${id}`, data);
+    const response = await api.put(`/admins/${id}`, data);
     return response.data;
 };
 
 export const updateAdminPassword = async (id: number, data: any): Promise<void> => {
-    await api.post(`/admins/${id}/password`, data);
+    await api.put(`/admins/${id}/password`, data);
 };
 
 export const updateAdminPhoto = async (id: number, photo: File): Promise<Admin> => {
     const formData = new FormData();
     formData.append('photo', photo);
-    formData.append('_method', 'PUT');
 
     const response = await api.post(`/admins/${id}/photo`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }

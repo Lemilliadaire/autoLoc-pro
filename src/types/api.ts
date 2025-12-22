@@ -41,6 +41,8 @@ export interface Client {
   telephone: string;
   date_naissance: string;
   photo?: string;
+  photo_profil?: string;
+  photo_url?: string;
   user: User;
 }
 
@@ -55,11 +57,15 @@ export interface Paiement {
 }
 
 export interface Reservation {
+  date_fin: string | number | Date;
+  date_debut: string | number | Date;
+  user_id: number | undefined;
   id: number;
   voiture_id: number;
   client_id: number;
   agence_depart_id: number;
   agence_retour_id: number;
+  agence_retrait_id?: number;
   date_depart: string;
   date_retour: string;
   statut: string;
@@ -88,6 +94,8 @@ export interface Admin {
   id: number;
   user_id: number;
   photo?: string;
+  photo_profil?: string;
+  photo_url?: string;
   user: User;
 }
 

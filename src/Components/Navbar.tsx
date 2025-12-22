@@ -20,6 +20,16 @@ import {
 const Navbar: React.FC = () => {
   const { user, logoutUser, isAdmin } = useAuth();
 
+  const getPhotoUrl = (photo: string | undefined) => {
+    if (!photo) return null;
+    if (photo.startsWith('http')) return photo;
+    // If the path already starts with '/storage/' or 'storage/', remove it to avoid duplication
+    // when prepending the full base URL.
+    const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
+      photo.startsWith('storage/') ? photo.substring(8) : photo;
+    return `http://127.0.0.1:8000/storage/${cleanPath}`;
+  };
+
   return (
     <BootstrapNavbar bg="white" expand="lg" className="shadow-sm py-2" sticky="top">
       <Container>
@@ -55,7 +65,7 @@ const Navbar: React.FC = () => {
                     <div className="d-inline-flex align-items-center border rounded-pill px-2 py-1 bg-light">
                       {user.photo ? (
                         <img
-                          src={`http://127.0.0.1:8000/storage/${user.photo}?t=${new Date().getTime()}`}
+                          src={`${getPhotoUrl(user.photo)}?t=${new Date().getTime()}`}
                           alt="Profile"
                           className="rounded-circle me-2"
                           style={{ width: '24px', height: '24px', objectFit: 'cover' }}

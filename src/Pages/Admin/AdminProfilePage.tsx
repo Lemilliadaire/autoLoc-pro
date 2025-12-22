@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Alert, Image, InputGroup } from 'react-bootstrap';
 import { useAuth } from '../../hooks/useAuth';
 import { updateAdminPhoto, updateAdminProfile, updateAdminPassword, getAdmins } from '../../services/admin';
+import type { Admin } from '../../types/api';
 import { PersonCircle, Camera, Save, ExclamationTriangle, Key, ShieldLock } from 'react-bootstrap-icons';
 import LoadingSpinner from '../../Components/LoadingSpinner';
 
@@ -12,6 +13,7 @@ const AdminProfilePage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'danger', text: string } | null>(null);
     const [adminId, setAdminId] = useState<number | null>(null);
+    const [adminData, setAdminData] = useState<Admin | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Profile pour admin
@@ -43,6 +45,7 @@ const AdminProfilePage: React.FC = () => {
                 const currentAdmin = admins.find(a => a.user_id === user.id);
                 if (currentAdmin) {
                     setAdminId(currentAdmin.id);
+                    setAdminData(currentAdmin);
                 } else {
                     console.warn('User not found in admins list, using user.id as fallback');
                     setAdminId(user.id);
@@ -138,6 +141,16 @@ const AdminProfilePage: React.FC = () => {
         }
     };
 
+    const getPhotoUrl = (photo: string | undefined) => {
+        if (!photo) return null;
+        if (photo.startsWith('http')) return photo;
+        const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
+            photo.startsWith('storage/') ? photo.substring(8) : photo;
+        return `http://127.0.0.1:8000/storage/${cleanPath}`;
+    };
+
+    const displayPhoto = adminData?.photo_profil || user.photo;
+
     return (
         <Container fluid className="py-4">
             <h1 className="h3 fw-bold mb-4">Mon Profil Administrateur</h1>
@@ -153,9 +166,9 @@ const AdminProfilePage: React.FC = () => {
                     <Card className="border-0 shadow-sm text-center h-100">
                         <Card.Body className="d-flex flex-column align-items-center justify-content-center py-5">
                             <div className="position-relative mb-4">
-                                {user.photo ? (
+                                {displayPhoto ? (
                                     <Image
-                                        src={`http://127.0.0.1:8000/storage/${user.photo}?t=${new Date().getTime()}`}
+                                        src={`${getPhotoUrl(displayPhoto)}?t=${new Date().getTime()}`}
                                         roundedCircle
                                         style={{ width: '150px', height: '150px', objectFit: 'cover' }}
                                         className="border border-3 border-white shadow"

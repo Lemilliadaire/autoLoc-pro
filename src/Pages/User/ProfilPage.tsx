@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Badge, Alert, Nav, Tab, Button } from 'react-bootstrap';
+import React, { useEffect, useState, useRef } from 'react';
+import { Container, Row, Col, Card, Badge, Alert, Nav, Tab, Button, Image } from 'react-bootstrap';
 import { useAuth } from '../../hooks/useAuth';
 import ClientForm from '../../Components/ClientForm';
 import { getReservations } from '../../services/reservation';
+import { updateClientPhoto } from '../../services/client';
 import type { Reservation } from '../../types/api';
 import {
     PersonCircle,
@@ -15,7 +16,8 @@ import {
     CardText,
     CreditCard,
     Bell,
-    Gear
+    Gear,
+    Camera
 } from 'react-bootstrap-icons';
 import LoadingSpinner from '../../Components/LoadingSpinner';
 
@@ -24,6 +26,9 @@ const ProfilPage: React.FC = () => {
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [loadingResa, setLoadingResa] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    const [photoLoading, setPhotoLoading] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'danger', text: string } | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         // Refresh user data to ensure we have the latest client info
@@ -43,7 +48,7 @@ const ProfilPage: React.FC = () => {
             const myReservations = data.filter((res: Reservation) =>
                 res.client_id === user?.client?.id || res.user_id === user?.id
             );
-            // Sort by date descending
+            // Sort by dte
             myReservations.sort((a, b) => new Date(b.date_debut).getTime() - new Date(a.date_debut).getTime());
 
             setReservations(myReservations);
@@ -59,21 +64,67 @@ const ProfilPage: React.FC = () => {
         refreshUser();
     };
 
+    const handlePhotoClick = () => {
+        if (!user?.client) {
+            setMessage({ type: 'danger', text: 'Veuillez compléter votre profil client ci-dessous avant de pouvoir ajouter une photo.' });
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user?.client?.id || !token) return;
+
+        setPhotoLoading(true);
+        setMessage(null);
+
+        try {
+            const result = await updateClientPhoto(user.client.id, file, token);
+            console.log('Upload result from server:', result);
+            await refreshUser();
+            setMessage({ type: 'success', text: 'Photo de profil mise à jour !' });
+        } catch (error) {
+            console.error('Upload error details:', error);
+            setMessage({ type: 'danger', text: 'Erreur lors de la mise à jour de la photo.' });
+        } finally {
+            setPhotoLoading(false);
+        }
+    };
+
+    const getPhotoUrl = (photo: string | undefined) => {
+        if (!photo) return null;
+        if (photo.startsWith('http')) return photo;
+
+        // Handle cases where the path might already include /storage (to avoid double /storage/storage)
+        const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
+            photo.startsWith('storage/') ? photo.substring(8) : photo;
+
+        return `http://127.0.0.1:8000/storage/${cleanPath}`;
+    };
+
     if (!user) return null;
 
     return (
         <div className="py-5 bg-light" style={{ minHeight: '100vh' }}>
             <Container>
+                {message && (
+                    <Alert variant={message.type} dismissible onClose={() => setMessage(null)} className="mb-4">
+                        {message.text}
+                    </Alert>
+                )}
+
                 {/* Header Section with User Info */}
                 <div className="mb-5">
                     <Row className="align-items-center g-4">
                         <Col xs="auto">
                             <div className="position-relative">
                                 {user.photo ? (
-                                    <img
-                                        src={user.photo}
-                                        alt={user.name}
-                                        className="rounded-circle shadow-sm object-fit-cover"
+                                    <Image
+                                        src={`${getPhotoUrl(user.photo)}?t=${new Date().getTime()}`}
+                                        alt={`${user.name} ${user.lastname}`}
+                                        roundedCircle
+                                        className="shadow-sm object-fit-cover"
                                         style={{ width: '100px', height: '100px', border: '4px solid white' }}
                                     />
                                 ) : (
@@ -82,7 +133,28 @@ const ProfilPage: React.FC = () => {
                                         <PersonCircle size={50} className="text-primary opacity-50" />
                                     </div>
                                 )}
-                                <span className="position-absolute bottom-0 end-0 p-2 bg-success border border-white rounded-circle"></span>
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="position-absolute bottom-0 end-0 rounded-circle p-1 shadow-sm"
+                                    onClick={handlePhotoClick}
+                                    style={{ width: '30px', height: '30px', zIndex: 10 }}
+                                    title="Changer ma photo de profil"
+                                >
+                                    <Camera size={14} />
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="d-none"
+                                    accept="image/*"
+                                />
+                                {!user.client && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning" title="Complétez votre profil pour ajouter une photo">
+                                        !
+                                    </span>
+                                )}
                             </div>
                         </Col>
                         <Col>

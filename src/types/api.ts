@@ -82,6 +82,7 @@ export interface Reservation {
   client: Client;
   agence_depart: Agence;
   agence_retour: Agence;
+  agence_retrait?: Agence;
   paiements?: Paiement[];
 }
 

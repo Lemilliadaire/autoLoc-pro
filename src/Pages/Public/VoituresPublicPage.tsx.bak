@@ -1,0 +1,288 @@
+File Path: `file:///c:/ReactJS/autoloc-pro/src/Pages/Public/VoituresPublicPage.tsx`
+Total Lines: 285
+Total Bytes: 12482
+Showing lines 1 to 285
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: // src/Pages/Public/VoituresPublicPage.tsx
+2: import React, { useEffect, useState } from "react";
+3: import { useSearchParams, useNavigate } from "react-router-dom";
+4: import { getVoitures } from "../../services/voiture";
+5: import { getCategories } from "../../services/categorie";
+6: import { getAgences } from "../../services/agence";
+7: import type { Voiture, Categorie, Agence } from "../../types/api";
+8: import { Search, FunnelFill, GeoAltFill, Speedometer, Calendar, Palette, XCircle } from "react-bootstrap-icons";
+9: import LoadingSpinner from "../../Components/LoadingSpinner";
+10: 
+11: const VoituresPublicPage: React.FC = () => {
+12:   const getPhotoUrl = (photo: string | undefined, images?: any[]) => {
+13:     if (!photo && (!images || images.length === 0)) return null;
+14:     const path = photo || images![0].path;
+15:     if (path.startsWith('http')) return path;
+16:     const cleanPath = path.startsWith('/storage/') ? path.substring(9) :
+17:       path.startsWith('storage/') ? path.substring(8) : path;
+18:     return `http://127.0.0.1:8000/storage/${cleanPath}`;
+19:   };
+20:   const [searchParams, setSearchParams] = useSearchParams();
+21:   const navigate = useNavigate();
+22: 
+23:   const [voitures, setVoitures] = useState<Voiture[]>([]);
+24:   const [categories, setCategories] = useState<Categorie[]>([]);
+25:   const [agences, setAgences] = useState<Agence[]>([]);
+26:   const [loading, setLoading] = useState(true);
+27: 
+28:   // Pagination
+29:   const [page, setPage] = useState(1);
+30:   const [lastPage, setLastPage] = useState(1);
+31: 
+32:   // Filters
+33:   const [search, setSearch] = useState("");
+34:   const [categorieId, setCategorieId] = useState<string>(searchParams.get("categorie") || "");
+35:   const [agenceId, setAgenceId] = useState<string>("");
+36:   const [statut, setStatut] = useState<string>("disponible");
+37: 
+38:   useEffect(() => {
+39:     Promise.all([
+40:       getCategories(),
+41:       getAgences()
+42:     ]).then(([cats, ags]) => {
+43:       setCategories(cats);
+44:       setAgences(ags);
+45:     });
+46:   }, []);
+47: 
+48:   useEffect(() => {
+49:     fetchVoitures();
+50:   }, [categorieId, agenceId, statut, page]);
+51: 
+52:   const fetchVoitures = () => {
+53:     setLoading(true);
+54:     getVoitures({
+55:       categorie_id: categorieId ? Number(categorieId) : undefined,
+56:       agence_id: agenceId ? Number(agenceId) : undefined,
+57:       statut: statut || undefined,
+58:       page,
+59:       per_page: 12,
+60:     })
+61:       .then((data: any) => {
+62:         setVoitures(data.data);
+63:         setLastPage(data.last_page);
+64:       })
+65:       .catch((err: any) => console.error(err))
+66:       .finally(() => setLoading(false));
+67:   };
+68: 
+69:   // Filter locally for search text (since API might not support it yet)
+70:   const filteredVoitures = voitures.filter(v =>
+71:     search === "" ||
+72:     v.marque.toLowerCase().includes(search.toLowerCase()) ||
+73:     v.modele.toLowerCase().includes(search.toLowerCase())
+74:   );
+75: 
+76:   const resetFilters = () => {
+77:     setSearch("");
+78:     setCategorieId("");
+79:     setAgenceId("");
+80:     setStatut("disponible");
+81:     setPage(1);
+82:     setSearchParams({});
+83:   };
+84: 
+85:   return (
+86:     <div className="bg-light min-vh-100 py-5">
+87:       <Container>
+88:         <div className="mb-5">
+89:           <h1 className="fw-bold mb-3">Notre Catalogue</h1>
+90:           <p className="text-muted lead">
+91:             Découvrez notre large sélection de véhicules disponibles à la location.
+92:           </p>
+93:         </div>
+94: 
+95:         <Row>
+96:           {/* Sidebar Filters */}
+97:           <Col lg={3} className="mb-4">
+98:             <Card className="border-0 shadow-sm sticky-top" style={{ top: '2rem', zIndex: 1 }}>
+99:               <Card.Body className="p-4">
+100:                 <div className="d-flex justify-content-between align-items-center mb-4">
+101:                   <h5 className="mb-0 fw-bold"><FunnelFill className="me-2" /> Filtres</h5>
+102:                   {(search || categorieId || agenceId || statut !== 'disponible') && (
+103:                     <Button variant="link" size="sm" className="text-danger text-decoration-none p-0" onClick={resetFilters}>
+104:                       Réinitialiser
+105:                     </Button>
+106:                   )}
+107:                 </div>
+108: 
+109:                 <Form.Group className="mb-4">
+110:                   <Form.Label className="fw-semibold small text-muted">Recherche</Form.Label>
+111:                   <InputGroup>
+112:                     <InputGroup.Text className="bg-white border-end-0"><Search /></InputGroup.Text>
+113:                     <Form.Control
+114:                       type="search"
+115:                       placeholder="Marque, modèle..."
+116:                       className="border-start-0 ps-0"
+117:                       value={search}
+118:                       onChange={(e) => setSearch(e.target.value)}
+119:                     />
+120:                   </InputGroup>
+121:                 </Form.Group>
+122: 
+123:                 <Form.Group className="mb-4">
+124:                   <Form.Label className="fw-semibold small text-muted">Catégorie</Form.Label>
+125:                   <Form.Select
+126:                     value={categorieId}
+127:                     onChange={(e) => {
+128:                       setCategorieId(e.target.value);
+129:                       setPage(1);
+130:                     }}
+131:                   >
+132:                     <option value="">Toutes les catégories</option>
+133:                     {categories.map(c => (
+134:                       <option key={c.id} value={c.id}>{c.nom}</option>
+135:                     ))}
+136:                   </Form.Select>
+137:                 </Form.Group>
+138: 
+139:                 <Form.Group className="mb-4">
+140:                   <Form.Label className="fw-semibold small text-muted">Agence</Form.Label>
+141:                   <Form.Select
+142:                     value={agenceId}
+143:                     onChange={(e) => {
+144:                       setAgenceId(e.target.value);
+145:                       setPage(1);
+146:                     }}
+147:                   >
+148:                     <option value="">Toutes les agences</option>
+149:                     {agences.map(a => (
+150:                       <option key={a.id} value={a.id}>{a.nom} - {a.ville}</option>
+151:                     ))}
+152:                   </Form.Select>
+153:                 </Form.Group>
+154: 
+155:                 <Form.Group className="mb-4">
+156:                   <Form.Label className="fw-semibold small text-muted">Disponibilité</Form.Label>
+157:                   <Form.Select
+158:                     value={statut}
+159:                     onChange={(e) => {
+160:                       setStatut(e.target.value);
+161:                       setPage(1);
+162:                     }}
+163:                   >
+164:                     <option value="">Tous les statuts</option>
+165:                     <option value="disponible">Disponible uniquement</option>
+166:                     <option value="loue">Loué</option>
+167:                     <option value="maintenance">En maintenance</option>
+168:                   </Form.Select>
+169:                 </Form.Group>
+170:               </Card.Body>
+171:             </Card>
+172:           </Col>
+173: 
+174:           {/* Car Grid */}
+175:           <Col lg={9}>
+176:             {loading ? (
+177:               <LoadingSpinner />
+178:             ) : filteredVoitures.length === 0 ? (
+179:               <div className="text-center py-5">
+180:                 <XCircle size={48} className="text-muted mb-3" />
+181:                 <h4>Aucun véhicule trouvé</h4>
+182:                 <p className="text-muted">Essayez de modifier vos filtres de recherche.</p>
+183:                 <Button variant="primary" onClick={resetFilters}>Voir tous les véhicules</Button>
+184:               </div>
+185:             ) : (
+186:               <>
+187:                 <Row xs={1} md={2} className="g-4 mb-5">
+188:                   {filteredVoitures.map(v => (
+189:                     <Col key={v.id}>
+190:                       <Card className="h-100 border-0 shadow-sm card-hover">
+191:                         <div className="position-relative">
+192:                           {getPhotoUrl(v.photo, v.images) ? (
+193:                             <Card.Img
+194:                               variant="top"
+195:                               src={getPhotoUrl(v.photo, v.images)!}
+196:                               style={{ height: '220px', objectFit: 'cover' }}
+197:                             />
+198:                           ) : (
+199:                             <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: '220px' }}>
+200:                               <span className="text-muted">Photo non disponible</span>
+201:                             </div>
+202:                           )}
+203:                           <Badge
+204:                             bg={v.statut === 'disponible' ? 'success' : 'warning'}
+205:                             className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow-sm"
+206:                           >
+207:                             {v.statut === 'disponible' ? 'Disponible' : 'Indisponible'}
+208:                           </Badge>
+209:                           <Badge
+210:                             bg="light"
+211:                             text="dark"
+212:                             className="position-absolute bottom-0 start-0 m-3 px-3 py-2 rounded-pill shadow-sm"
+213:                           >
+214:                             {v.categorie?.nom}
+215:                           </Badge>
+216:                         </div>
+217: 
+218:                         <Card.Body className="p-4">
+219:                           <Card.Title className="h5 fw-bold mb-3">{v.marque} {v.modele}</Card.Title>
+220: 
+221:                           <Row className="g-2 mb-4 small text-muted">
+222:                             <Col xs={6} className="d-flex align-items-center">
+223:                               <Calendar className="me-2" /> {v.annee}
+224:                             </Col>
+225:                             <Col xs={6} className="d-flex align-items-center">
+226:                               <Speedometer className="me-2" /> {v.kilometrage} km
+227:                             </Col>
+228:                             <Col xs={6} className="d-flex align-items-center">
+229:                               <Palette className="me-2" /> {v.couleur}
+230:                             </Col>
+231:                             <Col xs={6} className="d-flex align-items-center">
+232:                               <GeoAltFill className="me-2" /> {v.agence?.ville}
+233:                             </Col>
+234:                           </Row>
+235: 
+236:                           <div className="d-flex justify-content-between align-items-center pt-3 border-top">
+237:                             <div>
+238:                               <span className="h4 fw-bold text-primary mb-0">{v.prix_journalier} €</span>
+239:                               <span className="text-muted small"> / jour</span>
+240:                             </div>
+241:                             <Button
+242:                               onClick={() => navigate(`/voitures-public/${v.id}`)}
+243:                               variant={v.statut === 'disponible' ? 'primary' : 'outline-secondary'}
+244:                               className="rounded-pill px-4"
+245:                               disabled={v.statut !== 'disponible'}
+246:                             >
+247:                               {v.statut === 'disponible' ? 'Réserver' : 'Détails'}
+248:                             </Button>
+249:                           </div>
+250:                         </Card.Body>
+251:                       </Card>
+252:                     </Col>
+253:                   ))}
+254:                 </Row>
+255: 
+256:                 {/* Pagination */}
+257:                 {lastPage > 1 && (
+258:                   <div className="d-flex justify-content-center">
+259:                     <Pagination>
+260:                       <Pagination.First onClick={() => setPage(1)} disabled={page === 1} />
+261:                       <Pagination.Prev onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
+262: 
+263:                       {Array.from({ length: lastPage }, (_, i) => i + 1).map(number => (
+264:                         <Pagination.Item key={number} active={number === page} onClick={() => setPage(number)}>
+265:                           {number}
+266:                         </Pagination.Item>
+267:                       ))}
+268: 
+269:                       <Pagination.Next onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage} />
+270:                       <Pagination.Last onClick={() => setPage(lastPage)} disabled={page === lastPage} />
+271:                     </Pagination>
+272:                   </div>
+273:                 )}
+274:               </>
+275:             )}
+276:           </Col>
+277:         </Row>
+278:       </Container>
+279:     </div>
+280:   );
+281: };
+282: 
+283: export default VoituresPublicPage;

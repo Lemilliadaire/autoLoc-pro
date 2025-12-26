@@ -114,13 +114,34 @@ const ReservationsAdminPage: React.FC = () => {
                                 {reservations.map((reservation) => (
                                     <tr key={reservation.id}>
                                         <td>{reservation.id}</td>
-                                        <td>{reservation.client?.user?.name || 'N/A'}</td>
-                                        <td>{reservation.voiture ? `${reservation.voiture.marque} ${reservation.voiture.modele}` : 'N/A'}</td>
-                                        <td>{new Date(reservation.date_depart).toLocaleDateString('fr-FR')}</td>
-                                        <td>{new Date(reservation.date_retour).toLocaleDateString('fr-FR')}</td>
-                                        <td>{reservation.agence_depart?.nom || 'N/A'}</td>
-                                        <td>{reservation.agence_retour?.nom || 'N/A'}</td>
-                                        <td>{reservation.prix_total} FCFA</td>
+                                        <td>
+                                            {(reservation as any).user?.name || reservation.client?.user?.name || <span className="text-muted fst-italic">Client inconnu</span>}
+                                        </td>
+                                        <td>{reservation.voiture ? `${reservation.voiture.marque} ${reservation.voiture.modele}` : <span className="text-muted">Véhicule supprimé</span>}</td>
+                                        <td>
+                                            {new Date(reservation.date_depart || reservation.date_debut).toLocaleDateString('fr-FR')}
+                                        </td>
+                                        <td>
+                                            {new Date(reservation.date_retour || reservation.date_fin).toLocaleDateString('fr-FR')}
+                                        </td>
+                                        <td>
+                                            {reservation.agence_retrait ?
+                                                `${reservation.agence_retrait.nom} - ${reservation.agence_retrait.ville}` :
+                                                reservation.voiture?.agence ?
+                                                    `${reservation.voiture.agence.nom} - ${reservation.voiture.agence.ville}` :
+                                                    <span className="text-danger small fst-italic">Agence inconnue</span>}
+                                        </td>
+                                        <td>
+                                            {reservation.agence_retour ?
+                                                `${reservation.agence_retour.nom} - ${reservation.agence_retour.ville}` :
+                                                // If return agency is missing, we don't necessarily show 'Unknown' if it implies dropping off at same location,
+                                                // but for now let's be explicit or just keep the dash for return if optional.
+                                                // User complained about 'empty', so let's show 'Idem départ' or '-' if logic dictates.
+                                                // Let's stick to '-' for return if it's not set, as it might mean 'Same as departure' in some business logic,
+                                                // BUT for Departure, it *must* be known.
+                                                <span className="text-muted">-</span>}
+                                        </td>
+                                        <td className="fw-bold text-primary">{reservation.prix_total} FCFA</td>
                                         <td>{getStatusBadge(reservation.statut)}</td>
                                         <td>
                                             <div className="d-flex gap-2">

@@ -110,10 +110,14 @@ const MesReservationsPage: React.FC = () => {
                                                 au <strong>{new Date(resa.date_fin).toLocaleDateString()}</strong>
                                             </div>
                                         </div>
-                                        {resa.voiture?.agence && (
+                                        {(resa.agence_retrait || resa.voiture?.agence) && (
                                             <div className="d-flex align-items-center text-muted small">
                                                 <GeoAltFill className="me-2" />
-                                                {resa.voiture.agence.ville}
+                                                <span>
+                                                    {resa.agence_retrait?.nom || resa.voiture?.agence?.nom || 'Agence'}
+                                                    <span className="mx-1">-</span>
+                                                    {resa.agence_retrait?.ville || resa.voiture?.agence?.ville || ''}
+                                                </span>
                                             </div>
                                         )}
                                     </div>

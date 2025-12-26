@@ -118,10 +118,10 @@ const Navbar: React.FC = () => {
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button variant="primary" size="sm" className="fw-semibold px-3 rounded-pill shadow-sm">
+                  {/* <Button variant="primary" size="sm" className="fw-semibold px-3 rounded-pill shadow-sm">
                     <PersonPlusFill className="me-2" />
                     Inscription
-                  </Button>
+                  </Button> */}
                 </Link>
               </div>
             )}

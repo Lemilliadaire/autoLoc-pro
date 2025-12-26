@@ -34,7 +34,7 @@ const AgencesAdminPage: React.FC = () => {
 
   return (
     <div>
-      <h1>Gestion des agences 🏢 (Admin)</h1>
+      <h1>Gestion des agences (Admin)</h1>
       {feedback && <Alert variant={feedback.type} onClose={() => setFeedback(null)} dismissible>{feedback.message}</Alert>}
       <AgenceForm onSubmit={handleSubmit} />
       <AgenceTable token={token} key={refreshKey} />

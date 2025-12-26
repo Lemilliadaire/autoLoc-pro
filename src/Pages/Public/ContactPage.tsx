@@ -59,7 +59,7 @@ const ContactPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <h6 className="fw-bold mb-1">Téléphone</h6>
-                                        <p className="mb-0 opacity-75">+221 33 123 45 67<br />+221 77 123 45 67</p>
+                                        <p className="mb-0 opacity-75">+228 90 12 45 67<br />+228 79 23 45 67</p>
                                     </div>
                                 </div>
 

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Card } from 'react-bootstrap';
 import { createPaiement } from '../services/paiement';
-import { CreditCard, CashCoin, Paypal } from 'react-bootstrap-icons';
+import { Phone, PhoneFill, CashCoin } from 'react-bootstrap-icons';
 
 interface PaymentFormProps {
     reservationId: number;
@@ -12,7 +12,7 @@ interface PaymentFormProps {
 }
 
 const PaymentForm: React.FC<PaymentFormProps> = ({ reservationId, amount, onSuccess, onCancel }) => {
-    const [method, setMethod] = useState('carte_bancaire');
+    const [method, setMethod] = useState('tmoney');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -41,46 +41,61 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ reservationId, amount, onSucc
     return (
         <Card className="shadow-sm border-0">
             <Card.Body>
-                <h4 className="mb-4">Paiement sécurisé</h4>
-                <div className="mb-4 p-3 bg-light rounded d-flex justify-content-between align-items-center">
-                    <span className="text-muted">Montant à payer :</span>
-                    <span className="h4 mb-0 text-primary">{amount} €</span>
+                <h4 className="mb-4 text-center">Finaliser votre réservation</h4>
+                <div className="mb-4 p-4 border rounded-3 d-flex justify-content-between align-items-center bg-light">
+                    <span className="fw-bold text-secondary">Montant à régler :</span>
+                    <span className="h3 mb-0 text-primary fw-bold">{amount} <small>CFA</small></span>
                 </div>
 
-                {error && <Alert variant="danger">{error}</Alert>}
+                {error && <Alert variant="danger" className="py-2 small">{error}</Alert>}
 
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-4">
-                        <Form.Label>Méthode de paiement</Form.Label>
-                        <div className="d-grid gap-2">
+                        <Form.Label className="fw-semibold mb-3">Choisissez votre moyen de paiement</Form.Label>
+                        <div className="d-grid gap-3">
                             <Button
-                                variant={method === 'carte_bancaire' ? 'primary' : 'outline-secondary'}
-                                className="d-flex align-items-center justify-content-between p-3"
-                                onClick={() => setMethod('carte_bancaire')}
+                                variant={method === 'tmoney' ? 'primary' : 'outline-light'}
+                                className={`d-flex align-items-center justify-content-between p-3 border shadow-sm ${method === 'tmoney' ? 'text-white' : 'text-dark fw-medium'}`}
+                                onClick={() => setMethod('tmoney')}
                                 type="button"
                             >
-                                <span><CreditCard className="me-2" /> Carte Bancaire</span>
-                                {method === 'carte_bancaire' && <span>✓</span>}
+                                <div className="d-flex align-items-center">
+                                    <div className={`me-3 p-2 rounded-circle ${method === 'tmoney' ? 'bg-white bg-opacity-25' : 'bg-primary bg-opacity-10'}`}>
+                                        <Phone className={method === 'tmoney' ? 'text-white' : 'text-primary'} />
+                                    </div>
+                                    <span className="fs-5">TMoney</span>
+                                </div>
+                                {method === 'tmoney' && <span className="badge bg-white text-primary rounded-pill">SÉLECTIONNÉ</span>}
                             </Button>
 
                             <Button
-                                variant={method === 'paypal' ? 'primary' : 'outline-secondary'}
-                                className="d-flex align-items-center justify-content-between p-3"
-                                onClick={() => setMethod('paypal')}
+                                variant={method === 'flooz' ? 'primary' : 'outline-light'}
+                                className={`d-flex align-items-center justify-content-between p-3 border shadow-sm ${method === 'flooz' ? 'text-white' : 'text-dark fw-medium'}`}
+                                onClick={() => setMethod('flooz')}
                                 type="button"
                             >
-                                <span><Paypal className="me-2" /> PayPal</span>
-                                {method === 'paypal' && <span>✓</span>}
+                                <div className="d-flex align-items-center">
+                                    <div className={`me-3 p-2 rounded-circle ${method === 'flooz' ? 'bg-white bg-opacity-25' : 'bg-success bg-opacity-10'}`}>
+                                        <PhoneFill className={method === 'flooz' ? 'text-white' : 'text-success'} />
+                                    </div>
+                                    <span className="fs-5">Flooz</span>
+                                </div>
+                                {method === 'flooz' && <span className="badge bg-white text-primary rounded-pill">SÉLECTIONNÉ</span>}
                             </Button>
 
                             <Button
-                                variant={method === 'especes' ? 'primary' : 'outline-secondary'}
-                                className="d-flex align-items-center justify-content-between p-3"
+                                variant={method === 'especes' ? 'primary' : 'outline-light'}
+                                className={`d-flex align-items-center justify-content-between p-3 border shadow-sm ${method === 'especes' ? 'text-white' : 'text-dark fw-medium'}`}
                                 onClick={() => setMethod('especes')}
                                 type="button"
                             >
-                                <span><CashCoin className="me-2" /> Espèces (en agence)</span>
-                                {method === 'especes' && <span>✓</span>}
+                                <div className="d-flex align-items-center">
+                                    <div className={`me-3 p-2 rounded-circle ${method === 'especes' ? 'bg-white bg-opacity-25' : 'bg-secondary bg-opacity-10'}`}>
+                                        <CashCoin className={method === 'especes' ? 'text-white' : 'text-secondary'} />
+                                    </div>
+                                    <span className="fs-5">En Espèce</span>
+                                </div>
+                                {method === 'especes' && <span className="badge bg-white text-primary rounded-pill">SÉLECTIONNÉ</span>}
                             </Button>
                         </div>
                     </Form.Group>

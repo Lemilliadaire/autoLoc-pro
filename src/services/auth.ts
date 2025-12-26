@@ -5,7 +5,7 @@ import type { User, AuthResponse } from "../types/api";
 export type { User, AuthResponse };
 
 // REGISTER
-export const register = async (name: string, lastname: string, telephone: string,email: string, password: string, password_confirm: string, role: string = "user") => {
+export const register = async (name: string, lastname: string, telephone: string, email: string, password: string, password_confirm: string, role: string = "user") => {
   const res = await api.post<AuthResponse>("/register", { name, lastname, telephone, email, password, password_confirm, role });
   return res.data;
 };
@@ -28,6 +28,22 @@ export const logout = async (token: string) => {
 export const me = async (token: string) => {
   const res = await api.get<User>("/me", {
     headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+// FORGOT PASSWORD
+export const forgotPassword = async (email: string) => {
+  const res = await api.post<{ status: boolean; message: string }>("/forgot-password", { email });
+  return res.data;
+};
+
+// RESET PASSWORD
+export const resetPassword = async (token: string, password: string, password_confirmation: string) => {
+  const res = await api.post<{ status: boolean; message: string }>("/reset-password", {
+    token,
+    password,
+    password_confirmation
   });
   return res.data;
 };

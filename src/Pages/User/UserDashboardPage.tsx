@@ -26,7 +26,7 @@ const UserDashboardPage: React.FC = () => {
         <div className="d-flex align-items-center mb-3">
           <PersonCircle size={50} className="text-primary me-3" />
           <div>
-            <h1 className="mb-1">Bonjour, {user.name} ! 👋</h1>
+            <h1 className="mb-1">Bonjour, {user.name} ! </h1>
             <p className="text-muted mb-0">
               <Badge bg="primary" className="me-2">Client</Badge>
               {user.email}
@@ -38,7 +38,7 @@ const UserDashboardPage: React.FC = () => {
       {/* Message de bienvenue */}
       <Card className="mb-4 border-0 shadow-sm bg-gradient-primary">
         <Card.Body className="text-white p-4">
-          <h4 className="mb-2">🎉 Bienvenue sur votre espace personnel !</h4>
+          <h4 className="mb-2">Bienvenue sur votre espace personnel !</h4>
           <p className="mb-0 opacity-75">
             Gérez vos réservations, consultez votre historique et découvrez nos véhicules disponibles.
           </p>

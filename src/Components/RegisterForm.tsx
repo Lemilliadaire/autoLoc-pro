@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { register } from "../services/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { Container, Card, Form, Button, Alert, Row, Col, InputGroup } from "react-bootstrap";
+import { Card, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { Person, Telephone, Envelope, Lock, PersonPlus } from "react-bootstrap-icons";
 import { isAxiosError } from "axios";
 
@@ -42,93 +42,170 @@ const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light py-5">
-      <Container style={{ maxWidth: '500px' }}>
-        <div className="text-center mb-4">
-          <h2 className="fw-bold text-primary">Créez votre compte 🚀</h2>
-          <p className="text-muted">Rejoignez-nous pour louer simplement.</p>
+    <div className="auth-split-container">
+      {/* Sidebar Section */}
+      <div className="auth-sidebar">
+        <div className="mb-5">
+          <Link to="/" className="text-white text-decoration-none d-flex align-items-center gap-2 mb-4">
+            <div className="bg-white p-2 rounded-3 text-primary">
+              <PersonPlus size={24} />
+            </div>
+            <span className="fs-3 fw-bold tracking-tight">AutoLoc Pro</span>
+          </Link>
+          <h1 className="display-4 fw-bold mb-3">Rejoignez-nous</h1>
+          <p className="fs-5 text-white-50">Créez votre compte en quelques secondes et accédez à une flotte d'exception.</p>
         </div>
-        <Card className="shadow-lg border-0 rounded-4">
-          <Card.Body className="p-4 p-md-5">
-            <Form onSubmit={handleSubmit}>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3" controlId="name">
-                    <Form.Label className="small fw-semibold text-secondary">Nom</Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text className="bg-white border-end-0 text-muted"><Person /></InputGroup.Text>
-                      <Form.Control className="border-start-0 ps-0 shadow-none border-left-0" type="text" placeholder="Nom" required autoFocus value={name} onChange={(e) => setName(e.target.value)} />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3" controlId="lastname">
-                    <Form.Label className="small fw-semibold text-secondary">Prénom</Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text className="bg-white border-end-0 text-muted"><Person /></InputGroup.Text>
-                      <Form.Control className="border-start-0 ps-0 shadow-none" type="text" placeholder="Prénom" required value={lastname} onChange={(e) => setLastname(e.target.value)} />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-              </Row>
 
-              <Form.Group className="mb-3" controlId="phone">
-                <Form.Label className="small fw-semibold text-secondary">Téléphone</Form.Label>
-                <InputGroup>
-                  <InputGroup.Text className="bg-white border-end-0 text-muted"><Telephone /></InputGroup.Text>
-                  <Form.Control className="border-start-0 ps-0 shadow-none" type="tel" placeholder="06 12 34 56 78" required value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </InputGroup>
-              </Form.Group>
+        <div className="mt-auto">
+          <div className="p-4 bg-white bg-opacity-10 rounded-4 backdrop-blur">
+            <p className="mb-0 italic">"Une expérience de location moderne pensée pour votre confort et votre sécurité."</p>
+          </div>
+        </div>
+      </div>
 
-              <Form.Group className="mb-3" controlId="email">
-                <Form.Label className="small fw-semibold text-secondary">Email</Form.Label>
-                <InputGroup>
-                  <InputGroup.Text className="bg-white border-end-0 text-muted"><Envelope /></InputGroup.Text>
-                  <Form.Control className="border-start-0 ps-0 shadow-none" type="email" placeholder="exemple@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                </InputGroup>
-              </Form.Group>
+      {/* Form Section */}
+      <div className="auth-form-section">
+        <div style={{ maxWidth: '600px', width: '100%' }}>
+          <div className="mb-4 text-center d-lg-none">
+            <h2 className="fw-bold text-primary">AutoLoc Pro</h2>
+          </div>
 
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3" controlId="password">
-                    <Form.Label className="small fw-semibold text-secondary">Mot de passe</Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text className="bg-white border-end-0 text-muted"><Lock /></InputGroup.Text>
-                      <Form.Control className="border-start-0 ps-0 shadow-none" type="password" placeholder="******" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-4" controlId="password_confirm">
-                    <Form.Label className="small fw-semibold text-secondary">Confirmer</Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text className="bg-white border-end-0 text-muted"><Lock /></InputGroup.Text>
-                      <Form.Control className="border-start-0 ps-0 shadow-none" type="password" placeholder="******" required value={password_confirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              {feedback && (
-                <Alert variant={feedback.type === 'success' ? 'success' : 'danger'} className="mb-4 small border-0 bg-opacity-10">
-                  {feedback.message}
-                </Alert>
-              )}
-
-              <div className="d-grid">
-                <Button variant="primary" size="lg" type="submit" disabled={isSubmitting} className="rounded-3 fw-semibold">
-                  {isSubmitting ? "Inscription..." : <><PersonPlus className="me-2" /> S'inscrire</>}
-                </Button>
+          <Card className="glass-card border-0 rounded-4 overflow-hidden">
+            <Card.Body className="p-4 p-md-5">
+              <div className="mb-4">
+                <h2 className="text-center fw-bold h3 mb-2">Inscrivez-vous</h2>
+                <p className="text-muted">Remplissez les informations ci-dessous pour commencer.</p>
               </div>
-            </Form>
-          </Card.Body>
-          <Card.Footer className="bg-white border-0 text-center py-3 rounded-bottom-4">
-            <p className="text-muted small mb-0">
-              Déjà un compte ? <Link to="/login" className="fw-bold text-primary text-decoration-none">Connectez-vous</Link>
-            </p>
-          </Card.Footer>
-        </Card>
-      </Container>
+
+              <Form onSubmit={handleSubmit}>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="name">
+                      <Form.Label>Nom</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="text"
+                          placeholder="Veillez entrer votre nom"
+                          required
+                          autoFocus
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="lastname">
+                      <Form.Label>Prénom</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="text"
+                          placeholder="Veillez entrer votre prénom"
+                          required
+                          value={lastname}
+                          onChange={(e) => setLastname(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="phone">
+                      <Form.Label>Téléphone</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="tel"
+                          placeholder="Veillez entrer votre numéro de téléphone"
+                          required
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="email">
+                      <Form.Label>Email</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="email"
+                          placeholder="veillez entrer un email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="password">
+                      <Form.Label>Mot de passe</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="password"
+                          placeholder="veillez entrer un mot de passe"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="auth-input-group" controlId="password_confirm">
+                      <Form.Label>Confirmation</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type="password"
+                          placeholder="veillez confirmer votre mot de passe"
+                          required
+                          value={password_confirm}
+                          onChange={(e) => setPasswordConfirm(e.target.value)}
+                          className="auth-control shadow-none"
+                        />
+                        
+                      </div>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {feedback && (
+                  <Alert variant={feedback.type === 'success' ? 'success' : 'danger'} className="mb-4 border-0 rounded-3 py-2 small">
+                    {feedback.message}
+                  </Alert>
+                )}
+
+                <Button variant="primary" size="lg" type="submit" disabled={isSubmitting} className="w-100 rounded-3 py-3 fw-bold shadow-sm mb-3">
+                  {isSubmitting ? (
+                    <span className="spinner-border spinner-border-sm me-2"></span>
+                  ) : (
+                    "Créer mon compte"
+                  )}
+                </Button>
+
+                <p className="text-center text-muted mb-0 small">
+                  Déjà inscrit ? <Link to="/login" className="fw-bold text-primary text-decoration-none">Se connecter</Link>
+                </p>
+              </Form>
+            </Card.Body>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

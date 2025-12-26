@@ -7,6 +7,13 @@ export interface Agence {
   logo?: string;
 }
 
+export interface VoitureImage {
+  id: number;
+  voiture_id: number;
+  path: string;
+  type: 'exterieur' | 'interieur' | 'autre';
+}
+
 export interface Voiture {
   id: number;
   immatriculation: string;
@@ -20,6 +27,7 @@ export interface Voiture {
   categorie_id: number;
   agence_id: number;
   photo?: string;
+  images?: VoitureImage[];
   categorie?: Categorie;
   agence?: Agence;
   reservations?: Reservation[];

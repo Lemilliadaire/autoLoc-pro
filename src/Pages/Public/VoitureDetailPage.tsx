@@ -1,7 +1,7 @@
 // src/Pages/Public/VoitureDetailPage.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Button, Badge, ListGroup } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Badge, ListGroup, Nav } from "react-bootstrap";
 import { ArrowLeft, Speedometer, Calendar, Palette, GeoAlt, Tag, CheckCircle } from "react-bootstrap-icons";
 import type { Voiture } from "../../types/api";
 import { getVoiture } from "../../services/voiture";
@@ -23,9 +23,29 @@ const VoitureDetailPage: React.FC = () => {
     }
   }, [id]);
 
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'tous' | 'exterieur' | 'interieur' | 'autre'>('tous');
+
+  useEffect(() => {
+    if (voiture) {
+      if (voiture.photo) {
+        setActiveImage(getImagePath(voiture.photo));
+      } else if (voiture.images && voiture.images.length > 0) {
+        setActiveImage(getImagePath(voiture.images[0].path));
+      }
+    }
+  }, [voiture]);
+
   const fetchVoiture = async (voitureId: number) => {
     try {
       const data = await getVoiture(voitureId);
+      console.log('🚗 Données de la voiture chargées:', data);
+      console.log('📸 Images de galerie:', data.images?.length || 0);
+      if (data.images && data.images.length > 0) {
+        data.images.forEach((img, i) => {
+          console.log(`  ${i + 1}. ${img.path} (${img.type})`);
+        });
+      }
       setVoiture(data);
     } catch (err) {
       console.error(err);
@@ -33,6 +53,8 @@ const VoitureDetailPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const filteredImages = voiture?.images?.filter(img => activeTab === 'tous' || img.type === activeTab) || [];
 
   const handleReservationClick = () => {
     if (!user) {
@@ -50,49 +72,105 @@ const VoitureDetailPage: React.FC = () => {
     setShowReservationModal(true);
   };
 
+  const getImagePath = (path: string | undefined) => {
+    if (!path) return "";
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/storage/') ? path.substring(9) :
+      path.startsWith('storage/') ? path.substring(8) : path;
+    return `http://127.0.0.1:8000/storage/${cleanPath}`;
+  };
+
   if (loading) return <LoadingSpinner />;
   if (!voiture) return <div className="text-center py-5">Voiture non trouvée</div>;
 
+  const hasGallery = (voiture.images?.length ?? 0) > 0;
+
   return (
     <Container className="py-5">
-      <Button variant="outline-secondary" className="mb-4" onClick={() => navigate(-1)}>
-        <ArrowLeft className="me-2" /> Retour
+      <Button variant="outline-secondary" className="mb-4 shadow-sm" onClick={() => navigate(-1)}>
+        <ArrowLeft className="me-2" /> Retour au catalogue
       </Button>
 
       <Row>
         <Col lg={8}>
-          <Card className="shadow-sm border-0 mb-4">
-            {voiture.photo ? (
-              <Card.Img
-                variant="top"
-                src={`http://127.0.0.1:8000/storage/${voiture.photo}`}
-                alt={`${voiture.marque} ${voiture.modele}`}
-                style={{ height: '400px', objectFit: 'cover' }}
-              />
-            ) : (
-              <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: '400px' }}>
-                <span className="text-muted">Photo non disponible</span>
+          {/* Gallery Section */}
+          <Card className="shadow-lg border-0 mb-4 overflow-hidden" style={{ borderRadius: '1.5rem' }}>
+            <div className="position-relative">
+              {activeImage ? (
+                <div style={{ height: '450px', position: 'relative', overflow: 'hidden' }}>
+                  <Card.Img
+                    src={activeImage}
+                    alt="Main view"
+                    className="w-100 h-100 animate-in"
+                    style={{ objectFit: 'cover', transition: 'all 0.5s ease' }}
+                    key={activeImage}
+                  />
+                  <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.7))' }}>
+                    <h2 className="text-white mb-0 fw-bold">{voiture.marque} {voiture.modele}</h2>
+                    <span className="text-white-50">{voiture.annee} • Premium Edition</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: '450px' }}>
+                  <span className="text-muted">Aucune image disponible</span>
+                </div>
+              )}
+            </div>
+
+            <Card.Body className="p-4 bg-white">
+              {hasGallery && (
+                <>
+                  {/* Category Toggles */}
+                  <Nav variant="pills" className="gallery-nav mb-4 gap-2">
+                    <Nav.Item>
+                      <Nav.Link active={activeTab === 'tous'} onClick={() => setActiveTab('tous')} className="rounded-pill">Tous</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link active={activeTab === 'exterieur'} onClick={() => setActiveTab('exterieur')} className="rounded-pill">Extérieur</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link active={activeTab === 'interieur'} onClick={() => setActiveTab('interieur')} className="rounded-pill">Intérieur</Nav.Link>
+                    </Nav.Item>
+                  </Nav>
+                </>
+              )}
+
+              {/* Thumbnails */}
+              <div className="d-flex gap-3 overflow-auto pb-2 scrollbar-none" style={{ scrollSnapType: 'x mandatory' }}>
+                {voiture.photo && (
+                  <div
+                    className={`flex-shrink-0 cursor-pointer rounded-4 overflow-hidden border-2 transition-all ${activeImage === getImagePath(voiture.photo) ? 'border-primary ring-2 ring-primary' : 'border-transparent'}`}
+                    style={{ width: '100px', height: '70px', scrollSnapAlign: 'start' }}
+                    onClick={() => setActiveImage(getImagePath(voiture.photo!))}
+                  >
+                    <img src={getImagePath(voiture.photo)} className="w-100 h-100 object-fit-cover" alt="Main" />
+                  </div>
+                )}
+                {filteredImages.map((img) => (
+                  <div
+                    key={img.id}
+                    className={`flex-shrink-0 cursor-pointer rounded-4 overflow-hidden border-2 transition-all ${activeImage === getImagePath(img.path) ? 'border-primary ring-2 ring-primary' : 'border-transparent'}`}
+                    style={{ width: '100px', height: '70px', scrollSnapAlign: 'start' }}
+                    onClick={() => setActiveImage(getImagePath(img.path))}
+                  >
+                    <img src={getImagePath(img.path)} className="w-100 h-100 object-fit-cover" alt={img.type} />
+                  </div>
+                ))}
               </div>
-            )}
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h2 className="mb-1">{voiture.marque} {voiture.modele}</h2>
-                  <Badge bg="secondary" className="me-2">{voiture.categorie?.nom}</Badge>
-                  <Badge bg={voiture.statut === 'disponible' ? 'success' : 'warning'}>
-                    {voiture.statut === 'disponible' ? 'Disponible' : 'Indisponible'}
+            </Card.Body>
+
+            <Card.Body className="p-4 border-top">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="d-flex gap-2">
+                  <Badge bg="light" text="dark" className="border px-3 py-2 rounded-pill fw-medium">{voiture.categorie?.nom}</Badge>
+                  <Badge bg={voiture.statut === 'disponible' ? 'success' : 'warning'} className="px-3 py-2 rounded-pill">
+                    {voiture.statut === 'disponible' ? 'Disponible Immédiatement' : 'Temporairement Indisponible'}
                   </Badge>
                 </div>
-                <div className="text-end">
-                  <h3 className="text-primary mb-0">{voiture.prix_journalier} €</h3>
-                  <small className="text-muted">par jour</small>
-                </div>
               </div>
 
-              <hr />
-
-              <h5 className="mb-3">Caractéristiques</h5>
-              <Row xs={1} md={2} className="g-3 mb-4">
+              <h5 className="mb-4 fw-bold">Spécifications techniques</h5>
+              <Row xs={2} md={4} className="g-4 mb-4">
                 <Col>
                   <div className="d-flex align-items-center">
                     <Speedometer className="text-primary me-3" size={24} />

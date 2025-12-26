@@ -6,18 +6,25 @@ import { getVoitures } from '../../services/voiture';
 import type { Voiture } from '../../types/api';
 import LoadingSpinner from '../../Components/LoadingSpinner';
 import { CarFrontFill, ShieldCheck, ClockHistory, GeoAltFill } from 'react-bootstrap-icons';
-import './HomePage.css';
 
 const HomePage: React.FC = () => {
+  const getPhotoUrl = (photo: string | undefined, images?: any[]) => {
+    if (!photo && (!images || images.length === 0)) return null;
+    const path = photo || images![0].path;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/storage/') ? path.substring(9) :
+      path.startsWith('storage/') ? path.substring(8) : path;
+    return `http://127.0.0.1:8000/storage/${cleanPath}`;
+  };
   const navigate = useNavigate();
   const [featuredVoitures, setFeaturedVoitures] = useState<Voiture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getVoitures({ statut: 'disponible', page: 1 })
+    getVoitures({ statut: 'disponible', page: 1, per_page: 12 })
       .then(data => {
-        setFeaturedVoitures(data.data.slice(0, 3));
+        setFeaturedVoitures(data.data);
       })
       .catch(err => {
         console.error("Erreur lors de la récupération des voitures :", err);
@@ -114,10 +121,10 @@ const HomePage: React.FC = () => {
               <Col key={voiture.id}>
                 <Card className="h-100 border-0 shadow-sm card-hover">
                   <div className="position-relative">
-                    {voiture.photo ? (
+                    {getPhotoUrl(voiture.photo, voiture.images) ? (
                       <Card.Img
                         variant="top"
-                        src={`http://127.0.0.1:8000/storage/${voiture.photo}`}
+                        src={getPhotoUrl(voiture.photo, voiture.images)!}
                         alt={`${voiture.marque} ${voiture.modele}`}
                         style={{ height: '250px', objectFit: 'cover' }}
                       />

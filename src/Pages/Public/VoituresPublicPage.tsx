@@ -10,6 +10,14 @@ import { Search, FunnelFill, GeoAltFill, Speedometer, Calendar, Palette, XCircle
 import LoadingSpinner from "../../Components/LoadingSpinner";
 
 const VoituresPublicPage: React.FC = () => {
+  const getPhotoUrl = (photo: string | undefined, images?: any[]) => {
+    if (!photo && (!images || images.length === 0)) return null;
+    const path = photo || images![0].path;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/storage/') ? path.substring(9) :
+      path.startsWith('storage/') ? path.substring(8) : path;
+    return `http://127.0.0.1:8000/storage/${cleanPath}`;
+  };
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -49,6 +57,7 @@ const VoituresPublicPage: React.FC = () => {
       agence_id: agenceId ? Number(agenceId) : undefined,
       statut: statut || undefined,
       page,
+      per_page: 12,
     })
       .then((data: any) => {
         setVoitures(data.data);
@@ -181,10 +190,10 @@ const VoituresPublicPage: React.FC = () => {
                     <Col key={v.id}>
                       <Card className="h-100 border-0 shadow-sm card-hover">
                         <div className="position-relative">
-                          {v.photo ? (
+                          {getPhotoUrl(v.photo, v.images) ? (
                             <Card.Img
                               variant="top"
-                              src={`http://127.0.0.1:8000/storage/${v.photo}`}
+                              src={getPhotoUrl(v.photo, v.images)!}
                               style={{ height: '220px', objectFit: 'cover' }}
                             />
                           ) : (

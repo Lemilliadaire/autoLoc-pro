@@ -44,7 +44,7 @@ const CategoriesPage: React.FC = () => {
 
   return (
     <div>
-      <h1>Gestion des catégories 📂 (Admin)</h1>
+      <h1>Gestion des catégories  (Admin)</h1>
       {feedback && <Alert variant={feedback.type} onClose={() => setFeedback(null)} dismissible>{feedback.message}</Alert>}
       <CategorieForm onSubmit={handleSubmit} />
       <CategorieTable token={token} key={refreshKey} />

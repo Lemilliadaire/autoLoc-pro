@@ -13,7 +13,7 @@ const VoituresAdminPage: React.FC = () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>Gestion des voitures 🚘 (Admin)</h1>
+      <h1>Gestion des voitures (Admin)</h1>
       <VoitureForm token={token!} />
       <VoitureTable token={token!} />
     </div>

@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Badge, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../hooks/useAuth';
-import { getReservations, deleteReservation } from '../../services/reservation';
+import { getReservations, deleteReservation, updateReservation } from '../../services/reservation';
 import type { Reservation } from '../../types/api';
-import { Trash } from 'react-bootstrap-icons';
+import { Trash, CheckLg } from 'react-bootstrap-icons';
 
 const ReservationsAdminPage: React.FC = () => {
     const { token } = useAuth();
@@ -25,6 +25,20 @@ const ReservationsAdminPage: React.FC = () => {
             console.error('Erreur lors de la récupération des réservations:', err);
             setError('Impossible de charger les réservations');
             setLoading(false);
+        }
+    };
+
+    const handleValidate = async (id: number) => {
+        if (!window.confirm('Voulez-vous vraiment valider cette réservation ?')) {
+            return;
+        }
+
+        try {
+            await updateReservation(id, { statut: 'confirmee' });
+            setReservations(prev => prev.map(r => r.id === id ? { ...r, statut: 'confirmee' } : r));
+        } catch (err) {
+            console.error('Erreur lors de la validation:', err);
+            setError('Impossible de valider la réservation');
         }
     };
 
@@ -106,16 +120,29 @@ const ReservationsAdminPage: React.FC = () => {
                                         <td>{new Date(reservation.date_retour).toLocaleDateString('fr-FR')}</td>
                                         <td>{reservation.agence_depart?.nom || 'N/A'}</td>
                                         <td>{reservation.agence_retour?.nom || 'N/A'}</td>
-                                        <td>{reservation.prix_total} €</td>
+                                        <td>{reservation.prix_total} FCFA</td>
                                         <td>{getStatusBadge(reservation.statut)}</td>
                                         <td>
-                                            <Button
-                                                variant="outline-danger"
-                                                size="sm"
-                                                onClick={() => handleDelete(reservation.id)}
-                                            >
-                                                <Trash />
-                                            </Button>
+                                            <div className="d-flex gap-2">
+                                                {reservation.statut === 'en_attente' && (
+                                                    <Button
+                                                        variant="outline-success"
+                                                        size="sm"
+                                                        title="Valider la réservation"
+                                                        onClick={() => handleValidate(reservation.id)}
+                                                    >
+                                                        <CheckLg />
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    title="Supprimer"
+                                                    onClick={() => handleDelete(reservation.id)}
+                                                >
+                                                    <Trash />
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

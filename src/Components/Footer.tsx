@@ -118,11 +118,11 @@ const Footer: React.FC = () => {
                     <Col md={6} className="text-center text-md-end">
                         <ul className="list-inline mb-0 small">
                             <li className="list-inline-item">
-                                <a href="#" className="text-secondary text-decoration-none hover-text-primary">Mentions Légales</a>
+                                <Link to="/mentions-legales" className="text-secondary text-decoration-none hover-text-primary">Mentions Légales</Link>
                             </li>
                             <li className="list-inline-item mx-2 text-secondary">•</li>
                             <li className="list-inline-item">
-                                <a href="#" className="text-secondary text-decoration-none hover-text-primary">Confidentialité</a>
+                                <Link to="/confidentialite" className="text-secondary text-decoration-none hover-text-primary">Confidentialité</Link>
                             </li>
                         </ul>
                     </Col>

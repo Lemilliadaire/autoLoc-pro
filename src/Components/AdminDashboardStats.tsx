@@ -95,7 +95,7 @@ const AdminDashboardStats: React.FC = () => {
             const today = new Date();
             const last6Months = [];
             const revenuePerMonth = [];
-
+            
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 last6Months.push(monthNames[d.getMonth()]);

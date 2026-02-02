@@ -11,8 +11,8 @@ import Navbar from "./Components/Navbar";
 import LoadingSpinner from "./Components/LoadingSpinner";
 import { useAuth } from "./hooks/useAuth";
 import Footer from "./Components/Footer";
-import ClientsPage from "./Pages/Admin/ClientsPage";
-import CategoriesPage from "./Pages/Admin/CategoriesPage";
+import ClientsAdminPage from "./Pages/Admin/ClientsAdminPage";
+import CategoriesAdminPage from "./Pages/Admin/CategoriesAdminPage";
 import CategoriesPublicPage from "./Pages/Public/CategoriesPublicPage";
 import VoituresPublicPage from "./Pages/Public/VoituresPublicPage";
 import VoitureDetailPage from "./Pages/Public/VoitureDetailPage";
@@ -28,11 +28,13 @@ import UserDashboardPage from "./Pages/User/UserDashboardPage";
 import ReservationsAdminPage from "./Pages/Admin/ReservationsAdminPage";
 import AdminProfilePage from "./Pages/Admin/AdminProfilePage";
 import UserLayout from "./Pages/User/UserLayout";
+import PublicLayout from "./Layouts/PublicLayout";
 import ProfilPage from "./Pages/User/ProfilPage";
 import ContactPage from "./Pages/Public/ContactPage";
 import MesReservationsPage from "./Pages/User/MesReservationsPage";
 import MentionsLegalesPage from "./Pages/Public/MentionsLegalesPage";
 import ConfidentialitePage from "./Pages/Public/ConfidentialitePage";
+import PolitiqueUtilisationPage from "./Pages/Public/PolitiqueUtilisationPage";
 
 const Unauthorized = () => <h2>Accès refusé ❌</h2>;
 
@@ -58,16 +60,19 @@ const AppContent: React.FC = () => {
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/forgot-password" element={<ForgotPasswordForm />} />
           <Route path="/reset-password/:token" element={<ResetPasswordForm />} />
-          <Route path="/categories-public" element={<CategoriesPublicPage />} />
-          <Route path="/categories-public/:id" element={<CategoriesPublicPage />} />
-          <Route path="/agences-public" element={<AgencesPublicPage />} />
-          <Route path="/agences-public/:id" element={<AgenceDetailPage />} />
-          <Route path="/voitures-public" element={<VoituresPublicPage />} />
-          <Route path="/voitures-public/:id" element={<VoitureDetailPage />}
-          />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
-          <Route path="/confidentialite" element={<ConfidentialitePage />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/categories-public" element={<CategoriesPublicPage />} />
+            <Route path="/categories-public/:id" element={<CategoriesPublicPage />} />
+            <Route path="/agences-public" element={<AgencesPublicPage />} />
+            <Route path="/agences-public/:id" element={<AgenceDetailPage />} />
+            <Route path="/voitures-public" element={<VoituresPublicPage />} />
+            <Route path="/voitures-public/:id" element={<VoitureDetailPage />}
+            />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
+            <Route path="/confidentialite" element={<ConfidentialitePage />} />
+            <Route path="/politique-utilisation" element={<PolitiqueUtilisationPage />} />
+          </Route>
           <Route
             element={
               <ProtectedRoute requiredRole="user">
@@ -88,8 +93,8 @@ const AppContent: React.FC = () => {
             <Route path="voitures/edit/:id" element={<VoitureEditPage />} />
             <Route path="voitures" element={<VoituresAdminPage />} />
             <Route path="agences" element={<AgencesAdminPage />} />
-            <Route path="categories" element={<CategoriesPage />} />
-            <Route path="clients" element={<ClientsPage />} />
+            <Route path="categories" element={<CategoriesAdminPage />} />
+            <Route path="clients" element={<ClientsAdminPage />} />
             <Route path="reservations" element={<ReservationsAdminPage />} />
           </Route>
 

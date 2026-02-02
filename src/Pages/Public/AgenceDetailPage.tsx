@@ -69,7 +69,7 @@ const AgenceDetailPage: React.FC = () => {
                 <Card.Text className="text-muted">
                   Année : {v.annee} — Couleur : {v.couleur}
                 </Card.Text>
-                <h5 className="text-primary mt-auto">{v.prix_journalier} € / jour</h5>
+                <h5 className="text-primary mt-auto">{v.prix_journalier} FCFA / jour</h5>
                 <Link to={`/voitures-public/${v.id}`} style={{ textDecoration: 'none' }}>
                   <Button variant="primary" className="mt-2 w-100">
                     Voir détails

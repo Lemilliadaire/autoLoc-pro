@@ -234,7 +234,7 @@ const VoitureEditPage: React.FC = () => {
                             </Col>
                             <Col md={4}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="fw-bold">Prix journalier (€)</Form.Label>
+                                    <Form.Label className="fw-bold">Prix journalier (FCFA)</Form.Label>
                                     <Form.Control type="number" required value={prixJournalier} onChange={e => setPrixJournalier(Number(e.target.value))} />
                                 </Form.Group>
                             </Col>

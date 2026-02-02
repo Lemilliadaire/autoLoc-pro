@@ -125,7 +125,7 @@ const MesReservationsPage: React.FC = () => {
                                     <div className="d-flex justify-content-between align-items-center pt-3 border-top">
                                         <div>
                                             <span className="text-muted small d-block">Total</span>
-                                            <span className="fw-bold text-primary fs-5">{resa.prix_total} €</span>
+                                            <span className="fw-bold text-primary fs-5">{resa.prix_total} FCFA</span>
                                         </div>
                                         <Button variant="outline-dark" size="sm" className="rounded-pill">
                                             Détails

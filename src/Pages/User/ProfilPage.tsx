@@ -1,420 +1,479 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Container, Row, Col, Card, Badge, Alert, Nav, Tab, Button, Image } from 'react-bootstrap';
+// src/Pages/User/ProfilPage.tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Form, Alert, Image, Badge } from 'react-bootstrap';
 import { useAuth } from '../../hooks/useAuth';
-import ClientForm from '../../Components/ClientForm';
-import { getReservations } from '../../services/reservation';
-import { updateClientPhoto } from '../../services/client';
-import type { Reservation } from '../../types/api';
+import { updateClientPhoto, updateClient, getClients, createClient } from '../../services/client';
+import type { Client } from '../../types/api';
 import {
-    PersonCircle,
-    CalendarCheck,
-    ClockHistory,
-    ShieldCheck,
-    Envelope,
-    Telephone,
-    GeoAlt,
-    CardText,
-    CreditCard,
-    Bell,
-    Gear,
-    Camera
+    PersonCircle, Camera, Save, PersonVcard,
+    Pencil, XCircle, Envelope, Telephone, Calendar, Award,
+    CheckCircleFill, InfoCircle, GeoAlt, CreditCard, CalendarEvent
 } from 'react-bootstrap-icons';
 import LoadingSpinner from '../../Components/LoadingSpinner';
 
 const ProfilPage: React.FC = () => {
-    const { user, token, refreshUser } = useAuth();
-    const [reservations, setReservations] = useState<Reservation[]>([]);
-    const [loadingResa, setLoadingResa] = useState(true);
+    const { user, refreshUser, loading: authLoading, token } = useAuth();
+
+    const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [photoLoading, setPhotoLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'danger', text: string } | null>(null);
+    const [message, setMessage] = useState<{ type: 'success' | 'danger' | 'warning', text: string } | null>(null);
+    const [clientId, setClientId] = useState<number | null>(null);
+    const [clientData, setClientData] = useState<Client | null>(null);
+    const [profileExists, setProfileExists] = useState<boolean>(true);
+    const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Profile data for client
+    const [formData, setFormData] = useState({
+        numero_permis: '',
+        adresse: '',
+        telephone: '',
+        date_naissance: '',
+    });
+
     useEffect(() => {
-        // Refresh user data to ensure we have the latest client info
-        refreshUser();
+        if (user && token) {
+            // Initialize form with user data
+            setFormData({
+                numero_permis: user.client?.numero_permis || '',
+                adresse: user.client?.adresse || '',
+                telephone: user.client?.telephone || user.telephone || '',
+                date_naissance: user.client?.date_naissance || '',
+            });
 
-        // Fetch reservations
-        if (user) {
-            fetchReservations();
+            // Find the client ID matching the user
+            getClients(token).then(clients => {
+                const currentClient = clients.find(c => c.user_id === user.id);
+                if (currentClient) {
+                    setClientId(currentClient.id);
+                    setClientData(currentClient);
+                    setProfileExists(true);
+                } else {
+                    setProfileExists(false);
+                    setMessage({
+                        type: 'warning',
+                        text: 'Votre profil client n\'est pas encore complet. Veuillez remplir vos informations et cliquer sur "Enregistrer" pour créer votre profil.'
+                    });
+                    setIsEditing(true); // Activer automatiquement le mode édition
+                }
+            }).catch(err => {
+                console.error('Error fetching clients:', err);
+                setProfileExists(false);
+            });
         }
-    }, []);
+    }, [user, token]);
 
-    const fetchReservations = async () => {
-        try {
-            const response = await getReservations();
-            const data = Array.isArray(response) ? response : (response as any).data || [];
-            // Filter for current user's reservations
-            const myReservations = data.filter((res: Reservation) =>
-                res.client_id === user?.client?.id || res.user_id === user?.id
-            );
-            // Sort by dte
-            myReservations.sort((a, b) => new Date(b.date_debut).getTime() - new Date(a.date_debut).getTime());
-
-            setReservations(myReservations);
-        } catch (err) {
-            console.error("Erreur récupération réservations", err);
-        } finally {
-            setLoadingResa(false);
-        }
-    };
-
-    const handlClientUpdate = () => {
-        setIsEditing(false);
-        refreshUser();
-    };
+    if (authLoading) return <LoadingSpinner />;
+    if (!user || !token) return null;
 
     const handlePhotoClick = () => {
-        if (!user?.client) {
-            setMessage({ type: 'danger', text: 'Veuillez compléter votre profil client ci-dessous avant de pouvoir ajouter une photo.' });
-            return;
-        }
         fileInputRef.current?.click();
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !user?.client?.id || !token) return;
+        if (!file) return;
 
-        setPhotoLoading(true);
+        // Si le profil n'existe pas encore, stocker la photo temporairement
+        if (!profileExists || !clientId) {
+            setSelectedPhoto(file);
+            // Créer un aperçu de l'image
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            setMessage({
+                type: 'success',
+                text: 'Photo sélectionnée ! Elle sera uploadée lors de la création de votre profil.'
+            });
+            return;
+        }
+
+        // Si le profil existe, uploader directement
+        setLoading(true);
         setMessage(null);
 
         try {
-            const result = await updateClientPhoto(user.client.id, file, token);
-            console.log('Upload result from server:', result);
+            await updateClientPhoto(clientId, file, token);
             await refreshUser();
-            setMessage({ type: 'success', text: 'Photo de profil mise à jour !' });
+            setMessage({ type: 'success', text: 'Photo de profil mise à jour avec succès !' });
         } catch (error) {
-            console.error('Upload error details:', error);
+            console.error(error);
             setMessage({ type: 'danger', text: 'Erreur lors de la mise à jour de la photo.' });
         } finally {
-            setPhotoLoading(false);
+            setLoading(false);
         }
+    };
+
+    const handleProfileUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage(null);
+
+        if (!user || !token) {
+            setMessage({ type: 'danger', text: 'Session expirée. Veuillez vous reconnecter.' });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            if (!profileExists || !clientId) {
+                // Créer un nouveau profil client
+                const newClientData = {
+                    user_id: user.id,
+                    numero_permis: formData.numero_permis,
+                    adresse: formData.adresse,
+                    telephone: formData.telephone,
+                    date_naissance: formData.date_naissance,
+                };
+
+                const response = await createClient(newClientData, token);
+
+                if (response.client) {
+                    const newClientId = response.client.id;
+                    setClientId(newClientId);
+                    setClientData(response.client);
+                    setProfileExists(true);
+
+                    // Si une photo a été sélectionnée, l'uploader maintenant
+                    if (selectedPhoto) {
+                        try {
+                            await updateClientPhoto(newClientId, selectedPhoto, token);
+                            setSelectedPhoto(null);
+                            setPhotoPreview(null);
+                        } catch (photoError) {
+                            console.error('Error uploading photo:', photoError);
+                            // Ne pas bloquer la création du profil si l'upload de la photo échoue
+                        }
+                    }
+                }
+
+                await refreshUser();
+                setMessage({ type: 'success', text: 'Profil créé avec succès !' });
+                setIsEditing(false);
+            } else {
+                // Mettre à jour le profil existant
+                await updateClient(clientId, formData, token);
+                await refreshUser();
+                setMessage({ type: 'success', text: 'Informations mises à jour avec succès !' });
+                setIsEditing(false);
+            }
+        } catch (error: any) {
+            console.error('Error updating/creating profile:', error);
+            const errorMessage = error?.response?.data?.message || 'Erreur lors de la sauvegarde du profil.';
+            setMessage({ type: 'danger', text: errorMessage });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        if (user) {
+            setFormData({
+                numero_permis: user.client?.numero_permis || '',
+                adresse: user.client?.adresse || '',
+                telephone: user.client?.telephone || user.telephone || '',
+                date_naissance: user.client?.date_naissance || '',
+            });
+        }
+        setMessage(null);
     };
 
     const getPhotoUrl = (photo: string | undefined) => {
         if (!photo) return null;
         if (photo.startsWith('http')) return photo;
-
-        // Handle cases where the path might already include /storage (to avoid double /storage/storage)
         const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
             photo.startsWith('storage/') ? photo.substring(8) : photo;
-
         return `http://127.0.0.1:8000/storage/${cleanPath}`;
     };
 
-    if (!user) return null;
+    // Utiliser l'aperçu temporaire en priorité, sinon la photo du profil
+    const displayPhoto = photoPreview || clientData?.photo_profil || clientData?.photo || user.photo;
 
     return (
-        <div className="py-5 bg-light" style={{ minHeight: '100vh' }}>
-            <Container>
-                {message && (
-                    <Alert variant={message.type} dismissible onClose={() => setMessage(null)} className="mb-4">
-                        {message.text}
-                    </Alert>
-                )}
+        <Container fluid className="py-4">
+            {/* Header avec bannière */}
+            <Card className="border-0 shadow-sm mb-4 overflow-hidden">
+                <div
+                    className="position-relative"
+                    style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        height: '200px'
+                    }}
+                >
+                    <div className="position-absolute bottom-0 start-0 w-100 p-4">
+                        <Row className="align-items-end">
+                            <Col xs="auto">
+                                <div className="position-relative" style={{ marginBottom: '-50px' }}>
+                                    <div
+                                        className="rounded-circle p-2 bg-white shadow-lg position-relative"
+                                        style={{
+                                            cursor: isEditing ? 'pointer' : 'default',
+                                            transition: 'transform 0.3s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (isEditing) e.currentTarget.style.transform = 'scale(1.05)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                        }}
+                                    >
+                                        {displayPhoto ? (
+                                            <Image
+                                                src={
+                                                    displayPhoto.startsWith('data:')
+                                                        ? displayPhoto
+                                                        : `${getPhotoUrl(displayPhoto)}?t=${new Date().getTime()}`
+                                                }
+                                                roundedCircle
+                                                style={{
+                                                    width: '150px',
+                                                    height: '150px',
+                                                    objectFit: 'cover',
+                                                    border: '4px solid white'
+                                                }}
+                                            />
+                                        ) : (
+                                            <PersonCircle size={150} className="text-secondary" />
+                                        )}
+                                        {isEditing && (
+                                            <>
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    className="position-absolute bottom-0 end-0 rounded-circle shadow"
+                                                    style={{ width: '45px', height: '45px' }}
+                                                    onClick={handlePhotoClick}
+                                                    disabled={loading}
+                                                    title="Changer la photo"
+                                                >
+                                                    <Camera size={22} />
+                                                </Button>
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileChange}
+                                                    className="d-none"
+                                                    accept="image/*"
+                                                />
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col>
+                                <h2 className="text-white fw-bold mb-1">{user.name} {user.lastname}</h2>
+                                <div className="d-flex align-items-center gap-3 text-white text-opacity-90">
+                                    <span><Envelope size={16} className="me-1" />{user.email}</span>
+                                    {(user.client?.telephone || user.telephone) && (
+                                        <span><Telephone size={16} className="me-1" />{user.client?.telephone || user.telephone}</span>
+                                    )}
+                                </div>
+                            </Col>
+                            <Col xs="auto">
+                                <Badge bg="light" text="dark" className="px-3 py-2 fs-6 fw-normal">
+                                    <PersonCircle className="me-2" />
+                                    Client
+                                </Badge>
+                            </Col>
+                        </Row>
+                    </div>
+                </div>
+                <Card.Body className="pt-5 mt-4">
+                    {/* Stats Cards */}
+                    <Row className="g-3 mb-3">
+                        <Col md={4}>
+                            <Card className="border-0 bg-primary bg-opacity-10 h-100">
+                                <Card.Body className="text-center">
+                                    <Award size={32} className="text-primary mb-2" />
+                                    <h6 className="text-muted mb-1">Statut</h6>
+                                    <h5 className="fw-bold text-primary mb-0">Client</h5>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card className="border-0 bg-success bg-opacity-10 h-100">
+                                <Card.Body className="text-center">
+                                    <CheckCircleFill size={32} className="text-success mb-2" />
+                                    <h6 className="text-muted mb-1">Compte</h6>
+                                    <h5 className="fw-bold text-success mb-0">Actif</h5>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card className="border-0 bg-info bg-opacity-10 h-100">
+                                <Card.Body className="text-center">
+                                    <Calendar size={32} className="text-info mb-2" />
+                                    <h6 className="text-muted mb-1">Membre depuis</h6>
+                                    <h5 className="fw-bold text-info mb-0">
+                                        {new Date(user.created_at || Date.now()).toLocaleDateString('fr-FR', {
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
+                                    </h5>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
 
-                {/* Header Section with User Info */}
-                <div className="mb-5">
-                    <Row className="align-items-center g-4">
-                        <Col xs="auto">
-                            <div className="position-relative">
-                                {user.photo ? (
-                                    <Image
-                                        src={`${getPhotoUrl(user.photo)}?t=${new Date().getTime()}`}
-                                        alt={`${user.name} ${user.lastname}`}
-                                        roundedCircle
-                                        className="shadow-sm object-fit-cover"
-                                        style={{ width: '100px', height: '100px', border: '4px solid white' }}
+            {/* Messages */}
+            {message && (
+                <Alert
+                    variant={message.type}
+                    dismissible
+                    onClose={() => setMessage(null)}
+                    className="shadow-sm mb-4"
+                >
+                    {message.type === 'success' ? (
+                        <CheckCircleFill className="me-2" />
+                    ) : message.type === 'warning' ? (
+                        <InfoCircle className="me-2" />
+                    ) : (
+                        <InfoCircle className="me-2" />
+                    )}
+                    {message.text}
+                </Alert>
+            )}
+
+            {/* Informations du Profil */}
+            <Card className="border-0 shadow-sm">
+                <Card.Header className="bg-white py-3 border-0">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="fw-bold mb-0">
+                            <PersonVcard className="me-2 text-primary" />
+                            Informations du profil
+                        </h5>
+                        {!isEditing && (
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                <Pencil className="me-2" size={16} />
+                                Modifier
+                            </Button>
+                        )}
+                    </div>
+                </Card.Header>
+                <Card.Body className="p-4">
+                    <Row className="g-4">
+                        <Col md={6}>
+                            <div className="border rounded p-3 h-100">
+                                <label className="text-muted small mb-2 d-block">
+                                    <Envelope className="me-1" />
+                                    Email
+                                </label>
+                                <h6 className="mb-0">{user.email}</h6>
+                            </div>
+                        </Col>
+                        <Col md={6}>
+                            <div className="border rounded p-3 h-100">
+                                <label className="text-muted small mb-2 d-block">
+                                    <Telephone className="me-1" />
+                                    Téléphone
+                                </label>
+                                {isEditing ? (
+                                    <Form.Control
+                                        type="tel"
+                                        value={formData.telephone}
+                                        onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                                        placeholder="Entrez votre numéro"
                                     />
                                 ) : (
-                                    <div className="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                        style={{ width: '100px', height: '100px', border: '4px solid white' }}>
-                                        <PersonCircle size={50} className="text-primary opacity-50" />
-                                    </div>
-                                )}
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    className="position-absolute bottom-0 end-0 rounded-circle p-1 shadow-sm"
-                                    onClick={handlePhotoClick}
-                                    style={{ width: '30px', height: '30px', zIndex: 10 }}
-                                    title="Changer ma photo de profil"
-                                >
-                                    <Camera size={14} />
-                                </Button>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="d-none"
-                                    accept="image/*"
-                                />
-                                {!user.client && (
-                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning" title="Complétez votre profil pour ajouter une photo">
-                                        !
-                                    </span>
+                                    <h6 className="mb-0">{formData.telephone || 'Non renseigné'}</h6>
                                 )}
                             </div>
                         </Col>
-                        <Col>
-                            <h1 className="fw-bold mb-1">{user.name} {user.lastname}</h1>
-                            <div className="d-flex align-items-center text-muted gap-3 flex-wrap">
-                                <span className="d-flex align-items-center gap-2">
-                                    <Envelope /> {user.email}
-                                </span>
-                                {user.telephone && (
-                                    <span className="d-flex align-items-center gap-2">
-                                        <Telephone /> {user.telephone}
-                                    </span>
+                        <Col md={6}>
+                            <div className="border rounded p-3 h-100">
+                                <label className="text-muted small mb-2 d-block">
+                                    <CreditCard className="me-1" />
+                                    Numéro de permis
+                                </label>
+                                {isEditing ? (
+                                    <Form.Control
+                                        type="text"
+                                        value={formData.numero_permis}
+                                        onChange={(e) => setFormData({ ...formData, numero_permis: e.target.value })}
+                                        placeholder="Entrez votre numéro de permis"
+                                    />
+                                ) : (
+                                    <h6 className="mb-0">{formData.numero_permis || 'Non renseigné'}</h6>
                                 )}
-                                <Badge bg="primary" className="rounded-pill px-3 py-2">
-                                    <ShieldCheck className="me-2" />
-                                    {user.role === 'admin' ? 'Administrateur' : 'Client Vérifié'}
-                                </Badge>
+                            </div>
+                        </Col>
+                        <Col md={6}>
+                            <div className="border rounded p-3 h-100">
+                                <label className="text-muted small mb-2 d-block">
+                                    <CalendarEvent className="me-1" />
+                                    Date de naissance
+                                </label>
+                                {isEditing ? (
+                                    <Form.Control
+                                        type="date"
+                                        value={formData.date_naissance}
+                                        onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
+                                    />
+                                ) : (
+                                    <h6 className="mb-0">
+                                        {formData.date_naissance ?
+                                            new Date(formData.date_naissance).toLocaleDateString('fr-FR') :
+                                            'Non renseigné'
+                                        }
+                                    </h6>
+                                )}
+                            </div>
+                        </Col>
+                        <Col md={12}>
+                            <div className="border rounded p-3 h-100">
+                                <label className="text-muted small mb-2 d-block">
+                                    <GeoAlt className="me-1" />
+                                    Adresse
+                                </label>
+                                {isEditing ? (
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        value={formData.adresse}
+                                        onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                                        placeholder="Entrez votre adresse complète"
+                                    />
+                                ) : (
+                                    <h6 className="mb-0">{formData.adresse || 'Non renseigné'}</h6>
+                                )}
                             </div>
                         </Col>
                     </Row>
-                </div>
 
-                <Row className="g-4">
-                    {/* Main Content Column */}
-                    <Col lg={8}>
-                        <Tab.Container defaultActiveKey="profil">
-                            <Card className="border-0 shadow-sm overflow-hidden">
-                                <Card.Header className="bg-white border-0 p-0">
-                                    <Nav variant="tabs" className="px-4 pt-4 border-bottom-0">
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="profil" className="fw-medium px-4 py-3 border-bottom-0">
-                                                <PersonCircle className="me-2" />Mon Profil
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="reservations" className="fw-medium px-4 py-3 border-bottom-0">
-                                                <ClockHistory className="me-2" />Historique
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                    </Nav>
-                                </Card.Header>
-
-                                <Card.Body className="p-4 bg-white">
-                                    <Tab.Content>
-                                        <Tab.Pane eventKey="profil">
-                                            <div className="d-flex justify-content-between align-items-start mb-4">
-                                                <div>
-                                                    <h4 className="fw-bold mb-2">Informations Client</h4>
-                                                    <p className="text-muted mb-0">
-                                                        Données nécessaires pour vos contrats de location.
-                                                    </p>
-                                                </div>
-                                                {!isEditing && (
-                                                    <Button
-                                                        variant="outline-primary"
-                                                        className="rounded-pill px-4 fw-bold shadow-sm"
-                                                        onClick={() => setIsEditing(true)}
-                                                    >
-                                                        <PencilSquare className="me-2" />
-                                                        {user.client ? 'Modifier' : 'Compléter'}
-                                                    </Button>
-                                                )}
-                                            </div>
-
-                                            {isEditing ? (
-                                                <div className="bg-light p-4 rounded-4 border">
-                                                    {token && (
-                                                        <ClientForm
-                                                            token={token}
-                                                            initialData={user.client}
-                                                            onClientAdded={handlClientUpdate}
-                                                            onCancel={() => setIsEditing(false)}
-                                                        />
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="row g-4">
-                                                    {user.client ? (
-                                                        <>
-                                                            <Col md={6}>
-                                                                <div className="p-3 border rounded-3 bg-light bg-opacity-50">
-                                                                    <label className="text-muted small fw-bold text-uppercase mb-1 d-block">Numéro de Permis</label>
-                                                                    <div className="fw-bold fs-5"><PersonBadge className="me-2 text-primary" />{user.client.numero_permis}</div>
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={6}>
-                                                                <div className="p-3 border rounded-3 bg-light bg-opacity-50">
-                                                                    <label className="text-muted small fw-bold text-uppercase mb-1 d-block">Téléphone</label>
-                                                                    <div className="fw-bold fs-5"><Telephone className="me-2 text-primary" />{user.client.telephone}</div>
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={6}>
-                                                                <div className="p-3 border rounded-3 bg-light bg-opacity-50">
-                                                                    <label className="text-muted small fw-bold text-uppercase mb-1 d-block">Date de Naissance</label>
-                                                                    <div className="fw-bold fs-5"><CalendarDate className="me-2 text-primary" />{new Date(user.client.date_naissance).toLocaleDateString()}</div>
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={12}>
-                                                                <div className="p-3 border rounded-3 bg-light bg-opacity-50">
-                                                                    <label className="text-muted small fw-bold text-uppercase mb-1 d-block">Adresse</label>
-                                                                    <div className="fw-bold fs-5"><GeoAlt className="me-2 text-primary" />{user.client.adresse}</div>
-                                                                </div>
-                                                            </Col>
-                                                        </>
-                                                    ) : (
-                                                        <Col md={12}>
-                                                            <div className="text-center py-5 bg-light rounded-4 border border-dashed text-muted">
-                                                                <FileEarmarkPerson size={48} className="mb-3 opacity-25" />
-                                                                <p className="mb-0">Votre profil client n'est pas encore complété.</p>
-                                                            </div>
-                                                        </Col>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </Tab.Pane>
-
-                                        <Tab.Pane eventKey="reservations">
-                                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                                <h4 className="fw-bold mb-0">Historique des locations</h4>
-                                                <Badge bg="light" text="dark" className="rounded-pill border">
-                                                    {reservations.length} réservations
-                                                </Badge>
-                                            </div>
-
-                                            {loadingResa ? (
-                                                <LoadingSpinner />
-                                            ) : reservations.length > 0 ? (
-                                                <div className="vstack gap-3">
-                                                    {reservations.map(resa => (
-                                                        <div key={resa.id} className="d-flex p-3 rounded-3 border bg-light align-items-center">
-                                                            <div className="p-3 bg-white rounded-circle shadow-sm me-3 text-primary">
-                                                                <CarFrontFill size={24} />
-                                                            </div>
-                                                            <div className="flex-grow-1">
-                                                                <div className="d-flex justify-content-between mb-1">
-                                                                    <h6 className="fw-bold mb-0">
-                                                                        {resa.voiture ? `${resa.voiture.marque} ${resa.voiture.modele}` : 'Véhicule supprimé'}
-                                                                    </h6>
-                                                                    <Badge
-                                                                        bg={
-                                                                            resa.statut === 'confirmée' ? 'success' :
-                                                                                resa.statut === 'en attente' ? 'warning' : 'secondary'
-                                                                        }
-                                                                    >
-                                                                        {resa.statut}
-                                                                    </Badge>
-                                                                </div>
-                                                                <div className="text-muted small">
-                                                                    <CalendarCheck className="me-2" />
-                                                                    Du {new Date(resa.date_debut).toLocaleDateString()} au {new Date(resa.date_fin).toLocaleDateString()}
-                                                                </div>
-                                                            </div>
-                                                            <div className="ms-3 text-end">
-                                                                <div className="fw-bold fs-5 text-dark">{resa.prix_total} €</div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-5">
-                                                    <ClockHistory size={40} className="text-muted opacity-50 mb-3" />
-                                                    <p className="text-muted">Aucune réservation pour le moment.</p>
-                                                </div>
-                                            )}
-                                        </Tab.Pane>
-                                    </Tab.Content>
-                                </Card.Body>
-                            </Card>
-                        </Tab.Container>
-                    </Col>
-
-                    {/* Sidebar Column */}
-                    <Col lg={4}>
-                        {/* Quick Stats/Summary */}
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body className="p-4">
-                                <h5 className="fw-bold mb-4">Récapitulatif</h5>
-                                <div className="vstack gap-3">
-                                    <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
-                                        <div className="d-flex align-items-center">
-                                            <div className="p-2 bg-white rounded-circle me-3 text-success">
-                                                <CheckCircleFill />
-                                            </div>
-                                            <div>
-                                                <small className="text-muted d-block">Statut du compte</small>
-                                                <span className="fw-bold text-success">Actif</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
-                                        <div className="d-flex align-items-center">
-                                            <div className="p-2 bg-white rounded-circle me-3 text-primary">
-                                                <CarFrontFill />
-                                            </div>
-                                            <div>
-                                                <small className="text-muted d-block">Total locations</small>
-                                                <span className="fw-bold">{reservations.length}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card.Body>
-                        </Card>
-
-                        {/* Help Card */}
-                        <Card className="border-0 shadow-sm bg-primary text-white">
-                            <Card.Body className="p-4">
-                                <h5 className="fw-bold mb-3">Besoin d'aide ?</h5>
-                                <p className="opacity-75 small mb-4">
-                                    Si vous rencontrez des problèmes avec votre profil ou vos réservations, n'hésitez pas à nous contacter.
-                                </p>
-                                <Nav.Link href="/contact" className="btn btn-light w-100 fw-bold text-primary">
-                                    Contactez le support
-                                </Nav.Link>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Container>
-
-            <style>{`
-        .nav-tabs .nav-link {
-          color: #6c757d;
-          border: none;
-          position: relative;
-          transition: all 0.2s;
-        }
-        .nav-tabs .nav-link:hover {
-          color: #0d6efd;
-          background: rgba(13, 110, 253, 0.05);
-        }
-        .nav-tabs .nav-link.active {
-          color: #0d6efd;
-          background: transparent;
-          font-weight: bold;
-        }
-        .nav-tabs .nav-link.active::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background-color: #0d6efd;
-          border-radius: 3px 3px 0 0;
-        }
-      `}</style>
-        </div>
+                    {isEditing && (
+                        <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <Button
+                                variant="outline-secondary"
+                                onClick={handleCancelEdit}
+                                disabled={loading}
+                            >
+                                <XCircle className="me-2" />
+                                Annuler
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleProfileUpdate}
+                                disabled={loading}
+                            >
+                                <Save className="me-2" />
+                                Enregistrer les modifications
+                            </Button>
+                        </div>
+                    )}
+                </Card.Body>
+            </Card>
+        </Container>
     );
 };
-
-// Missing imports fix - adding icons that might be missing in imports
-import {
-    CarFrontFill,
-    CheckCircleFill,
-    PencilSquare,
-    PersonBadge,
-    CalendarDate,
-    FileEarmarkPerson
-} from 'react-bootstrap-icons';
 
 export default ProfilPage;

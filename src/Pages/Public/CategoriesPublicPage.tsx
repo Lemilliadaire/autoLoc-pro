@@ -53,7 +53,7 @@ const CategoriesPublicPage: React.FC = () => {
                   <div className="d-flex justify-content-between align-items-end border-top pt-3">
                     <div>
                       <small className="text-muted d-block mb-1">À partir de</small>
-                      <span className="h4 fw-bold text-primary mb-0">{c.prix_journalier} €</span>
+                      <span className="h4 fw-bold text-primary mb-0">{c.prix_journalier} FCFA</span>
                       <small className="text-muted"> / jour</small>
                     </div>
 

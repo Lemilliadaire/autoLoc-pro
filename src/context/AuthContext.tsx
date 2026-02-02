@@ -71,6 +71,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setToken(data.access_token);
       localStorage.setItem("token", data.access_token);
 
+      // Set Authorization header immediately for subsequent API calls
+      api.defaults.headers.common["Authorization"] = `Bearer ${data.access_token}`;
+
       let finalUser = { ...data.user };
       try {
         const admins = await getAdmins();

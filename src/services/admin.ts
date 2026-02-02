@@ -31,6 +31,23 @@ export const updateAdminPhoto = async (id: number, photo: File): Promise<Admin> 
     return response.data;
 };
 
+export const createAdmin = async (data: {
+    user_id: number;
+    photo_profil?: File;
+}): Promise<Admin> => {
+    const formData = new FormData();
+    formData.append('user_id', data.user_id.toString());
+
+    if (data.photo_profil) {
+        formData.append('photo_profil', data.photo_profil);
+    }
+
+    const response = await api.post('/admins', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data.admin;
+};
+
 export const deleteAdmin = async (id: number): Promise<void> => {
     await api.delete(`/admins/${id}`);
 };

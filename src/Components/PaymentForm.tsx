@@ -44,7 +44,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ reservationId, amount, onSucc
                 <h4 className="mb-4 text-center">Finaliser votre réservation</h4>
                 <div className="mb-4 p-4 border rounded-3 d-flex justify-content-between align-items-center bg-light">
                     <span className="fw-bold text-secondary">Montant à régler :</span>
-                    <span className="h3 mb-0 text-primary fw-bold">{amount} <small>CFA</small></span>
+                    <span className="h3 mb-0 text-primary fw-bold">{amount} <small>FCFA</small></span>
                 </div>
 
                 {error && <Alert variant="danger" className="py-2 small">{error}</Alert>}

@@ -3,26 +3,35 @@ import React, { useState } from "react";
 import { register } from "../services/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, Form, Button, Alert, Row, Col } from "react-bootstrap";
-import { Person, Telephone, Envelope, Lock, PersonPlus } from "react-bootstrap-icons";
+import { PersonPlus, Eye, EyeSlash } from "react-bootstrap-icons";
 import { isAxiosError } from "axios";
 
 const RegisterForm: React.FC = () => {
   const [name, setName] = useState("");
   const [lastname, setLastname] = useState("");
-  const [phone, setPhone] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password_confirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!acceptTerms) {
+      setFeedback({ type: "error", message: "Vous devez accepter la politique d'utilisation pour vous inscrire." });
+      return;
+    }
+
     setIsSubmitting(true);
     setFeedback(null);
     try {
-      await register(name, lastname, phone, email, password, password_confirm);
+      await register(name, lastname, "", email, password, password_confirm);
       setFeedback({ type: "success", message: "Inscription réussie ! Redirection..." });
       setTimeout(() => {
         navigate("/login");
@@ -92,7 +101,7 @@ const RegisterForm: React.FC = () => {
                           onChange={(e) => setName(e.target.value)}
                           className="auth-control shadow-none"
                         />
-                        
+
                       </div>
                     </Form.Group>
                   </Col>
@@ -108,30 +117,14 @@ const RegisterForm: React.FC = () => {
                           onChange={(e) => setLastname(e.target.value)}
                           className="auth-control shadow-none"
                         />
-                        
+
                       </div>
                     </Form.Group>
                   </Col>
                 </Row>
 
                 <Row>
-                  <Col md={6}>
-                    <Form.Group className="auth-input-group" controlId="phone">
-                      <Form.Label>Téléphone</Form.Label>
-                      <div className="position-relative">
-                        <Form.Control
-                          type="tel"
-                          placeholder="Veillez entrer votre numéro de téléphone"
-                          required
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className="auth-control shadow-none"
-                        />
-                        
-                      </div>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
+                  <Col md={12}>
                     <Form.Group className="auth-input-group" controlId="email">
                       <Form.Label>Email</Form.Label>
                       <div className="position-relative">
@@ -143,7 +136,7 @@ const RegisterForm: React.FC = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           className="auth-control shadow-none"
                         />
-                        
+
                       </div>
                     </Form.Group>
                   </Col>
@@ -155,14 +148,23 @@ const RegisterForm: React.FC = () => {
                       <Form.Label>Mot de passe</Form.Label>
                       <div className="position-relative">
                         <Form.Control
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="veillez entrer un mot de passe"
                           required
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="auth-control shadow-none"
+                          className="auth-control shadow-none pe-5"
                         />
-                        
+                        <Button
+                          variant="link"
+                          className="position-absolute end-0 top-50 translate-middle-y text-muted border-0 bg-transparent"
+                          style={{ zIndex: 10 }}
+                          onClick={() => setShowPassword(!showPassword)}
+                          type="button"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                        </Button>
                       </div>
                     </Form.Group>
                   </Col>
@@ -171,18 +173,42 @@ const RegisterForm: React.FC = () => {
                       <Form.Label>Confirmation</Form.Label>
                       <div className="position-relative">
                         <Form.Control
-                          type="password"
+                          type={showPasswordConfirm ? "text" : "password"}
                           placeholder="veillez confirmer votre mot de passe"
                           required
                           value={password_confirm}
                           onChange={(e) => setPasswordConfirm(e.target.value)}
-                          className="auth-control shadow-none"
+                          className="auth-control shadow-none pe-5"
                         />
-                        
+                        <Button
+                          variant="link"
+                          className="position-absolute end-0 top-50 translate-middle-y text-muted border-0 bg-transparent"
+                          style={{ zIndex: 10 }}
+                          onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                          type="button"
+                          tabIndex={-1}
+                        >
+                          {showPasswordConfirm ? <EyeSlash size={18} /> : <Eye size={18} />}
+                        </Button>
                       </div>
                     </Form.Group>
                   </Col>
                 </Row>
+
+                <Form.Group className="mb-4" controlId="terms">
+                  <Form.Check
+                    type="checkbox"
+                    label={
+                      <span>
+                        J'accepte la <Link to="/politique-utilisation" className="text-primary text-decoration-none">politique d'utilisation</Link>
+                      </span>
+                    }
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    required
+                    className="text-muted"
+                  />
+                </Form.Group>
 
                 {feedback && (
                   <Alert variant={feedback.type === 'success' ? 'success' : 'danger'} className="mb-4 border-0 rounded-3 py-2 small">

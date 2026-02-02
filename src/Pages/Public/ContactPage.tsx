@@ -49,7 +49,7 @@ const ContactPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <h6 className="fw-bold mb-1">Notre Adresse</h6>
-                                        <p className="mb-0 opacity-75">123 Avenue de la République,<br />Dakar, Sénégal</p>
+                                        <p className="mb-0 opacity-75">123 Avenue de la République,<br />Lomé, TOGO</p>
                                     </div>
                                 </div>
 
@@ -155,7 +155,7 @@ const ContactPage: React.FC = () => {
                 <Col xs={12}>
                     <Card className="border-0 shadow-sm overflow-hidden">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.22385458348!2d-17.44111162468759!3d14.69999998579934!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xec17247b4d32e9f%3A0xe6c87a41983c21a!2sDakar!5e0!3m2!1sfr!2ssn!4v1700000000000!5m2!1sfr!2ssn"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d1.2255863!3d6.1319222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1023e1d6c56b4e1f%3A0x2e2c4e6c3e6c4e1f!2sLom%C3%A9%2C%20Togo!5e0!3m2!1sfr!2stg!4v1700000000000!5m2!1sfr!2stg"
                             width="100%"
                             height="400"
                             style={{ border: 0 }}

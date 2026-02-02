@@ -187,7 +187,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ show, onHide, voitu
 
                         <Alert variant="info" className="d-flex justify-content-between align-items-center">
                             <span>Prix total estimé :</span>
-                            <span className="h4 mb-0">{totalPrice} €</span>
+                            <span className="h4 mb-0">{totalPrice} FCFA</span>
                         </Alert>
 
                         <div className="d-flex justify-content-end gap-2">

@@ -184,7 +184,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({ voitureId }) => {
 
             <div className="d-grid gap-2 mt-4">
                 <div className="text-center fs-5 mb-3">
-                    <strong>Prix total estimé : {prixTotal.toFixed(2)} €</strong>
+                    <strong>Prix total estimé : {prixTotal.toFixed(2)} FCFA</strong>
                 </div>
                 <Button variant="primary" type="submit" disabled={isSubmitting}>
                     {isSubmitting ? <><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Envoi...</> : 'Confirmer la réservation'}

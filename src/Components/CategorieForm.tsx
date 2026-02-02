@@ -39,7 +39,7 @@ const CategorieForm: React.FC<CategorieFormProps> = ({ onSubmit }) => {
               />
             </Form.Group>
             <Form.Group as={Col} md="6" controlId="catPrixJournalier">
-              <Form.Label>Prix Journalier (€)</Form.Label>
+              <Form.Label>Prix Journalier (FCFA)</Form.Label>
               <Form.Control
                 required
                 type="number"

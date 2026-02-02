@@ -4,9 +4,17 @@ import type { Categorie } from "../types/api";
 
 
 export const getCategories = async () => {
-  const res = await api.get<Categorie[]>("/categories");
-  return res.data;
+  const res = await api.get<any[]>("/categories");
+  return res.data.map((cat: any) => ({
+    ...cat,
+    prix_journalier: cat.prix_journalier !== undefined ? cat.prix_journalier : valDecimal(cat.prix_base)
+  })) as Categorie[];
 };
+
+const valDecimal = (val: any) => {
+  if (!val) return 0;
+  return typeof val === 'string' ? parseFloat(val) : val;
+}
 
 export const getCategorie = async (id: number) => {
   const res = await api.get<Categorie>(`/categories/${id}`);

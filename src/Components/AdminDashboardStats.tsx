@@ -1,4 +1,3 @@
-// src/Components/AdminDashboardStats.tsx
 import React, { useEffect, useState } from 'react';
 import {
     Chart as ChartJS,
@@ -15,9 +14,11 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Row, Col, Card } from 'react-bootstrap';
-import { CarFrontFill, CalendarCheck, PeopleFill, CurrencyDollar } from 'react-bootstrap-icons';
+import { CarFrontFill, CalendarCheck, PeopleFill, CurrencyDollar, Building, CollectionFill } from 'react-bootstrap-icons';
 import api from '../services/api';
 import { getReservations } from '../services/reservation';
+import { getAgences } from '../services/agence';
+import { getCategories } from '../services/categorie';
 
 ChartJS.register(
     CategoryScale,
@@ -36,6 +37,8 @@ interface Stats {
     totalVoitures: number;
     totalReservations: number;
     totalClients: number;
+    totalAgences: number;
+    totalCategories: number;
     revenuTotal: number;
     voituresParStatut: { disponible: number; loue: number; maintenance: number };
     revenueParMois: number[];
@@ -47,6 +50,8 @@ const AdminDashboardStats: React.FC = () => {
         totalVoitures: 0,
         totalReservations: 0,
         totalClients: 0,
+        totalAgences: 0,
+        totalCategories: 0,
         revenuTotal: 0,
         voituresParStatut: { disponible: 0, loue: 0, maintenance: 0 },
         revenueParMois: [],
@@ -60,16 +65,19 @@ const AdminDashboardStats: React.FC = () => {
 
     const fetchStats = async () => {
         try {
-            const [voituresRes, clientsRes, reservationsData] = await Promise.all([
+            const [voituresRes, clientsRes, reservationsData, agencesData, categoriesData] = await Promise.all([
                 api.get('/voitures').catch(() => ({ data: [] })),
                 api.get('/clients').catch(() => ({ data: [] })),
-                getReservations().catch(() => [])
+                getReservations().catch(() => []),
+                getAgences().catch(() => []),
+                getCategories().catch(() => [])
             ]);
 
             const voitures = voituresRes.data.data || voituresRes.data || [];
             const clients = clientsRes.data || [];
-            // reservationsData est directement le tableau de réservations grâce au service
             const reservations = Array.isArray(reservationsData) ? reservationsData : [];
+            const agences = Array.isArray(agencesData) ? agencesData : [];
+            const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
             // Calcul des voitures par statut
             const voituresParStatut = {
@@ -78,32 +86,27 @@ const AdminDashboardStats: React.FC = () => {
                 maintenance: Array.isArray(voitures) ? voitures.filter((v: any) => v.statut === 'maintenance').length : 0
             };
 
-            // Calcul du revenu total
+            // Calcul du revenu total et par mois
             const revenuTotal = reservations.reduce((acc: number, curr: any) => {
-                // On s'assure que le prix est un nombre valide
                 const prix = parseFloat(curr.prix_total) || 0;
-                // On ne compte que les réservations confirmées, en cours ou terminées pour le revenu réel
                 if (['confirmee', 'en_cours', 'terminee'].includes(curr.statut)) {
                     return acc + prix;
                 }
                 return acc;
             }, 0);
 
-            // Préparation des données pour le graphique en barres (Revenus par mois)
-            // On prend les 6 derniers mois
             const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
             const today = new Date();
             const last6Months = [];
             const revenuePerMonth = [];
-            
+
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 last6Months.push(monthNames[d.getMonth()]);
 
-                // Filtrer les réservations de ce mois
                 const monthRevenue = reservations
                     .filter((r: any) => {
-                        const dateRes = new Date(r.created_at || r.date_depart); // Utiliser created_at si dispo, sinon date_depart
+                        const dateRes = new Date(r.created_at || r.date_depart);
                         return dateRes.getMonth() === d.getMonth() &&
                             dateRes.getFullYear() === d.getFullYear() &&
                             ['confirmee', 'en_cours', 'terminee'].includes(r.statut);
@@ -117,6 +120,8 @@ const AdminDashboardStats: React.FC = () => {
                 totalVoitures: Array.isArray(voitures) ? voitures.length : 0,
                 totalReservations: reservations.length,
                 totalClients: Array.isArray(clients) ? clients.length : 0,
+                totalAgences: agences.length,
+                totalCategories: categories.length,
                 revenuTotal,
                 voituresParStatut,
                 revenueParMois: revenuePerMonth,
@@ -135,34 +140,54 @@ const AdminDashboardStats: React.FC = () => {
             value: stats.totalVoitures,
             icon: <CarFrontFill size={24} />,
             color: 'primary',
-            trend: 'Flotte',
-            trendUp: true
+            trend: 'Flotte'
         },
         {
-            title: 'Réservations',
-            value: stats.totalReservations,
-            icon: <CalendarCheck size={24} />,
-            color: 'success',
-            trend: 'Global',
-            trendUp: true
+            title: 'Agences',
+            value: stats.totalAgences,
+            icon: <Building size={24} />,
+            color: 'info', // Using info for agencies
+            trend: 'Réseau'
+        },
+        {
+            title: 'Catégories',
+            value: stats.totalCategories,
+            icon: <CollectionFill size={24} />,
+            color: 'secondary', // Using secondary for categories to vary colors
+            trend: 'Gammes'
         },
         {
             title: 'Clients',
             value: stats.totalClients,
             icon: <PeopleFill size={24} />,
-            color: 'info',
-            trend: 'Actifs',
-            trendUp: true
+            color: 'success', // Swapped info to success for variety
+            trend: 'Actifs'
+        },
+        {
+            title: 'Réservations',
+            value: stats.totalReservations,
+            icon: <CalendarCheck size={24} />,
+            color: 'danger', // Swapped success to danger (or keep consistent with reservations page badge?)
+            // Reservations in list are often "info" or "primary", but here let's use a distinct color.
+            // Let's stick to standard palette: Primary, Success, Info, Warning, Danger, Secondary.
+            trend: 'Global'
         },
         {
             title: 'Revenus',
             value: `${stats.revenuTotal.toLocaleString()} FCFA`,
             icon: <CurrencyDollar size={24} />,
             color: 'warning',
-            trend: 'Total',
-            trendUp: true
+            trend: 'Total'
         }
     ];
+
+    // Let's optimize colors to be distinct
+    kpiCards[0].color = 'primary';   // Voitures
+    kpiCards[1].color = 'info';      // Agences
+    kpiCards[2].color = 'secondary'; // Categories
+    kpiCards[3].color = 'success';   // Clients
+    kpiCards[4].color = 'danger';    // Reservations
+    kpiCards[5].color = 'warning';   // Revenus
 
     const chartOptions = {
         responsive: true,
@@ -224,7 +249,7 @@ const AdminDashboardStats: React.FC = () => {
             {/* KPI Cards */}
             <Row className="g-3 mb-4">
                 {kpiCards.map((card, index) => (
-                    <Col key={index} xs={12} sm={6} lg={3}>
+                    <Col key={index} xs={12} sm={6} lg={4}>
                         <Card className="border-0 shadow-sm h-100">
                             <Card.Body className="p-3">
                                 <div className="d-flex justify-content-between align-items-start mb-2">
@@ -235,7 +260,7 @@ const AdminDashboardStats: React.FC = () => {
                                         {card.trend}
                                     </div>
                                 </div>
-                                <h3 className="fw-bold mb-1">{card.value}</h3>
+                                <h3 className="fw-bold mb-1 fs-4">{card.value}</h3>
                                 <p className="text-muted small mb-0">{card.title}</p>
                             </Card.Body>
                         </Card>

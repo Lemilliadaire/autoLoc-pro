@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
             <Container>
                 <Row className="g-4 mb-5">
                     {/* Brand Section */}
-                    <Col lg={4} md={6}>
+                    <Col xs={12} lg={4} md={6}>
                         <div className="d-flex align-items-center mb-3">
                             <CarFrontFill className="text-primary me-2" size={32} />
                             <h4 className="fw-bold mb-0">AutoLoc Pro</h4>
@@ -45,7 +45,7 @@ const Footer: React.FC = () => {
                     </Col>
 
                     {/* Quick Links */}
-                    <Col lg={2} md={6}>
+                    <Col xs={12} sm={6} lg={2} md={6}>
                         <h5 className="fw-bold mb-4">Navigation</h5>
                         <ul className="list-unstyled d-flex flex-column gap-2 mb-0">
                             <li>
@@ -67,7 +67,7 @@ const Footer: React.FC = () => {
                     </Col>
 
                     {/* Contact Info */}
-                    <Col lg={3} md={6}>
+                    <Col xs={12} sm={6} lg={3} md={6}>
                         <h5 className="fw-bold mb-4">Contact</h5>
                         <ul className="list-unstyled d-flex flex-column gap-3 mb-0">
                             <li className="d-flex align-items-center text-secondary">
@@ -86,7 +86,7 @@ const Footer: React.FC = () => {
                     </Col>
 
                     {/* Newsletter */}
-                    <Col lg={3} md={6}>
+                    <Col xs={12} lg={3} md={6}>
                         <h5 className="fw-bold mb-4">Newsletter</h5>
                         <p className="text-secondary small mb-3">
                             Inscrivez-vous pour recevoir nos offres exclusives et actualités.

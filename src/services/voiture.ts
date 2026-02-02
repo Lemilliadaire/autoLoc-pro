@@ -12,6 +12,7 @@ export const getVoitures = async (filters?: { categorie_id?: number; agence_id?:
 };
 
 // Récupérer une seule voiture par son ID
+// Note: Les relations (reservations, categorie, agence, images) doivent être chargées côté backend
 export const getVoiture = async (id: number): Promise<Voiture> => {
   const res = await api.get(`/voitures/${id}`);
   return res.data;

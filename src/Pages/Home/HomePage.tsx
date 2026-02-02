@@ -5,7 +5,7 @@ import { Container, Button, Row, Col, Card, Badge } from 'react-bootstrap';
 import { getVoitures } from '../../services/voiture';
 import type { Voiture } from '../../types/api';
 import LoadingSpinner from '../../Components/LoadingSpinner';
-import { CarFrontFill, ShieldCheck, ClockHistory, GeoAltFill } from 'react-bootstrap-icons';
+import { CarFrontFill, ShieldCheck, ClockHistory, GeoAltFill, Whatsapp } from 'react-bootstrap-icons';
 
 const HomePage: React.FC = () => {
   const getPhotoUrl = (photo: string | undefined, images?: any[]) => {
@@ -22,7 +22,8 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getVoitures({ statut: 'disponible', page: 1, per_page: 12 })
+    // Fetch all cars to show rented ones too
+    getVoitures({ page: 1, per_page: 12 })
       .then(data => {
         setFeaturedVoitures(data.data);
       })
@@ -46,15 +47,15 @@ const HomePage: React.FC = () => {
       }}>
         <Container>
           <h1 className="display-3 fw-bold mb-4">Louez la voiture de vos rêves</h1>
-          <p className="lead fs-4 mb-5 mx-auto" style={{ maxWidth: '800px' }}>
+          <p className="lead fs-4 mb-5 mx-auto px-3" style={{ maxWidth: '800px' }}>
             Une expérience de location simple, rapide et transparente.
             Découvrez notre large gamme de véhicules pour tous vos besoins.
           </p>
-          <div className="d-flex justify-content-center gap-3">
-            <Button onClick={() => navigate("/voitures-public")} variant="primary" size="lg" className="px-5 py-3 fw-bold rounded-pill shadow">
+          <div className="d-flex flex-column flex-sm-row justify-content-center gap-3 px-3">
+            <Button onClick={() => navigate("/voitures-public")} variant="primary" size="lg" className="px-4 px-md-5 py-3 fw-bold rounded-pill shadow">
               Voir nos voitures
             </Button>
-            <Button onClick={() => navigate("/agences-public")} variant="outline-light" size="lg" className="px-5 py-3 fw-bold rounded-pill">
+            <Button onClick={() => navigate("/agences-public")} variant="outline-light" size="lg" className="px-4 px-md-5 py-3 fw-bold rounded-pill">
               Nos agences
             </Button>
           </div>
@@ -102,7 +103,7 @@ const HomePage: React.FC = () => {
 
       {/* Featured Cars Section */}
       <Container className="py-5">
-        <div className="d-flex justify-content-between align-items-end mb-4">
+        <div className="d-flex justify-content-between align-items-end mb-4 featured-header-mobile">
           <div>
             <h2 className="fw-bold mb-1">Nos voitures en vedette</h2>
             <p className="text-muted mb-0">Les modèles les plus populaires du moment</p>
@@ -133,7 +134,13 @@ const HomePage: React.FC = () => {
                         <span className="text-muted">Photo non disponible</span>
                       </div>
                     )}
-                    <Badge bg="primary" className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill">
+                    <Badge
+                      bg={voiture.statut === 'disponible' ? 'success' : voiture.statut === 'loue' ? 'warning' : 'danger'}
+                      className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow-sm"
+                    >
+                      {voiture.statut === 'disponible' ? 'Disponible' : voiture.statut === 'loue' ? 'Loué' : 'Indisponible'}
+                    </Badge>
+                    <Badge bg="light" text="dark" className="position-absolute bottom-0 start-0 m-3 px-3 py-2 rounded-pill shadow-sm opacity-75">
                       {voiture.categorie?.nom}
                     </Badge>
                   </div>
@@ -149,16 +156,35 @@ const HomePage: React.FC = () => {
 
                     <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                       <div>
-                        <span className="h4 fw-bold text-primary mb-0">{voiture.prix_journalier} €</span>
+                        <span className="h4 fw-bold text-primary mb-0">{voiture.prix_journalier} FCFA</span>
                         <span className="text-muted small"> / jour</span>
                       </div>
-                      <Button
-                        onClick={() => navigate(`/voitures-public/${voiture.id}`)}
-                        variant="outline-primary"
-                        className="rounded-pill px-4"
-                      >
-                        Détails
-                      </Button>
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="success"
+                          size="sm"
+                          className="rounded-pill px-2 d-flex align-items-center gap-2 shadow-sm"
+                          style={{ backgroundColor: '#25D366', borderColor: '#25D366' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const phone = '22879808915';
+                            const msg = encodeURIComponent(`Bonjour, je suis intéressé par la ${voiture.marque} ${voiture.modele} à ${voiture.prix_journalier} FCFA/jour.`);
+                            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                          }}
+                          title="Contacter sur WhatsApp"
+                        >
+                          <Whatsapp size={16} />
+                          <span>WhatsApp</span>
+                        </Button>
+                        <Button
+                          onClick={() => navigate(`/voitures-public/${voiture.id}`)}
+                          variant="outline-primary"
+                          size="sm"
+                          className="rounded-pill px-3"
+                        >
+                          Détails
+                        </Button>
+                      </div>
                     </div>
                   </Card.Body>
                 </Card>

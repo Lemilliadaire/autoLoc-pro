@@ -1,34 +1,34 @@
-// src/Components/Navbar.tsx
 import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Navbar as BootstrapNavbar, Container, Nav, NavDropdown, Button, Badge } from 'react-bootstrap';
 import {
   BoxArrowRight,
   PersonCircle,
-  Speedometer2,
   Wrench,
   BoxArrowInRight,
-  PersonPlusFill,
   CarFrontFill,
+  Speedometer2,
   GeoAltFill,
   CollectionFill,
-  CalendarCheck,
   EnvelopeFill
 } from 'react-bootstrap-icons';
 
 const Navbar: React.FC = () => {
   const { user, logoutUser, isAdmin } = useAuth();
+  const location = useLocation();
 
   const getPhotoUrl = (photo: string | undefined) => {
     if (!photo) return null;
     if (photo.startsWith('http')) return photo;
-    // If the path already starts with '/storage/' or 'storage/', remove it to avoid duplication
-    // when prepending the full base URL.
     const cleanPath = photo.startsWith('/storage/') ? photo.substring(9) :
       photo.startsWith('storage/') ? photo.substring(8) : photo;
     return `http://127.0.0.1:8000/storage/${cleanPath}`;
   };
+
+  // Masquer les liens de navigation sur les pages du dashboard utilisateur et admin
+  const hideNavLinksPrefixes = ['/dashboard', '/profil', '/mes-reservations', '/admin'];
+  const shouldHideNavLinks = hideNavLinksPrefixes.some(prefix => location.pathname.startsWith(prefix));
 
   return (
     <BootstrapNavbar bg="white" expand="lg" className="shadow-sm py-2" sticky="top">
@@ -41,23 +41,25 @@ const Navbar: React.FC = () => {
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" className="border-0 shadow-none" />
 
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
-          <Nav className="mx-auto mb-2 mb-lg-0 fw-medium">
-            <Nav.Link as={NavLink} to="/" className="px-2">Accueil</Nav.Link>
-            <Nav.Link as={NavLink} to="/voitures-public" className="px-2">
-              <CarFrontFill className="me-1 text-muted" size={14} /> Voitures
-            </Nav.Link>
-            <Nav.Link as={NavLink} to="/agences-public" className="px-2">
-              <GeoAltFill className="me-1 text-muted" size={14} /> Agences
-            </Nav.Link>
-            <Nav.Link as={NavLink} to="/categories-public" className="px-2">
-              <CollectionFill className="me-1 text-muted" size={14} /> Catégories
-            </Nav.Link>
-            <Nav.Link as={NavLink} to="/contact" className="px-2">
-              <EnvelopeFill className="me-1 text-muted" size={14} /> Contact
-            </Nav.Link>
-          </Nav>
+          {!shouldHideNavLinks && (
+            <Nav className="mx-auto mb-2 mb-lg-0 fw-medium">
+              <Nav.Link as={NavLink} to="/" className="px-2">Accueil</Nav.Link>
+              <Nav.Link as={NavLink} to="/voitures-public" className="px-2">
+                <CarFrontFill className="me-1 text-muted" size={14} /> Voitures
+              </Nav.Link>
+              <Nav.Link as={NavLink} to="/agences-public" className="px-2">
+                <GeoAltFill className="me-1 text-muted" size={14} /> Agences
+              </Nav.Link>
+              <Nav.Link as={NavLink} to="/categories-public" className="px-2">
+                <CollectionFill className="me-1 text-muted" size={14} /> Catégories
+              </Nav.Link>
+              <Nav.Link as={NavLink} to="/contact" className="px-2">
+                <EnvelopeFill className="me-1 text-muted" size={14} /> Contact
+              </Nav.Link>
+            </Nav>
+          )}
 
-          <Nav className="align-items-center gap-2">
+          <Nav className={`align-items-center gap-2 ${shouldHideNavLinks ? 'ms-auto' : ''}`}>
             {user ? (
               <>
                 <NavDropdown
@@ -102,6 +104,13 @@ const Navbar: React.FC = () => {
                     </>
                   )}
 
+                  {!isAdmin && (
+                    <NavDropdown.Item as={Link} to="/dashboard" className="py-2">
+                      <Speedometer2 className="me-2 text-primary" />
+                      Mon Espace
+                    </NavDropdown.Item>
+                  )}
+
                   <NavDropdown.Divider />
                   <NavDropdown.Item onClick={logoutUser} className="text-danger py-2">
                     <BoxArrowRight className="me-2" />
@@ -118,10 +127,7 @@ const Navbar: React.FC = () => {
                   </Button>
                 </Link>
                 <Link to="/register">
-                  {/* <Button variant="primary" size="sm" className="fw-semibold px-3 rounded-pill shadow-sm">
-                    <PersonPlusFill className="me-2" />
-                    Inscription
-                  </Button> */}
+                  {/* Register button commented out as per original code */}
                 </Link>
               </div>
             )}

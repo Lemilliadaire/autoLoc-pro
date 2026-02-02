@@ -104,7 +104,7 @@ const CategorieTable: React.FC<{ token: string }> = ({ token }) => {
                             <TableRow>
                                 <TableCell>Nom</TableCell>
                                 <TableCell>Description</TableCell>
-                                <TableCell>Prix Journalier (€)</TableCell>
+                                <TableCell>Prix Journalier (FCFA)</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
                         </TableHead>
@@ -145,7 +145,7 @@ const CategorieTable: React.FC<{ token: string }> = ({ token }) => {
                                                     size="small"
                                                 />
                                             ) : (
-                                                `${categorie.prix_journalier} €`
+                                                `${categorie.prix_journalier} FCFA`
                                             )}
                                         </TableCell>
                                         <TableCell>

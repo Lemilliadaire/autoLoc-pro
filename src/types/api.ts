@@ -65,6 +65,7 @@ export interface Paiement {
 }
 
 export interface Reservation {
+  created_at: string | number | Date;
   date_fin: string | number | Date;
   date_debut: string | number | Date;
   user_id: number | undefined;
@@ -97,6 +98,7 @@ export interface User {
   role: string;
   photo?: string;
   client?: Client;
+  created_at?: string;
 }
 
 export interface Admin {
@@ -122,4 +124,33 @@ export interface PaginatedResponse {
   last_page: number;
   per_page: number;
   total: number;
+}
+
+export interface ClientWithStats extends Client {
+  reservations_count?: number;
+  total_spent?: number;
+  last_reservation_date?: string;
+  reservations?: Reservation[];
+}
+
+export interface ClientFilters {
+  search: string;
+  ville?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  reservationsCount?: 'none' | 'low' | 'high' | 'all';
+}
+
+export interface ReservationWithBalance extends Reservation {
+  total_paid: number;
+  balance_remaining: number;
+  payment_status: 'paid' | 'partial' | 'unpaid';
+}
+
+export interface ReservationFilters {
+  search: string;
+  statut?: string;
+  agence_id?: number;
+  date_debut?: string;
+  date_fin?: string;
 }

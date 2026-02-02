@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Container, Card, Form, Button, Alert, InputGroup } from "react-bootstrap";
-import { Envelope, Lock, BoxArrowInRight } from "react-bootstrap-icons";
+import { Card, Form, Button, Alert } from "react-bootstrap";
+import { BoxArrowInRight, Eye, EyeSlash } from "react-bootstrap-icons";
 
 const LoginForm: React.FC = () => {
   const { loginUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -78,7 +79,7 @@ const LoginForm: React.FC = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="auth-control shadow-none"
                     />
-                    
+
                   </div>
                 </Form.Group>
 
@@ -88,14 +89,23 @@ const LoginForm: React.FC = () => {
                   </div>
                   <div className="position-relative">
                     <Form.Control
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="veillez entrer votre mot de passe"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="auth-control shadow-none"
+                      className="auth-control shadow-none pe-5"
                     />
-                    
+                    <Button
+                      variant="link"
+                      className="position-absolute end-0 top-50 translate-middle-y text-muted border-0 bg-transparent"
+                      style={{ zIndex: 10 }}
+                      onClick={() => setShowPassword(!showPassword)}
+                      type="button"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                    </Button>
                   </div>
                 </Form.Group>
 
@@ -117,9 +127,9 @@ const LoginForm: React.FC = () => {
                 <p className="text-center text-muted mb-0 small">
                   Nouveau utilisateur ? <Link to="/register" className="fw-bold text-primary text-decoration-none">Créer un compte</Link>
                 </p>
-                 <div className="text-center text-muted mb-0 small">
-                 <Link to="/forgot-password" className="text-primary small text-decoration-none fw-medium">Mot de passe oublié ?</Link>
-                 </div>
+                <div className="text-center text-muted mb-0 small">
+                  <Link to="/forgot-password" className="text-primary small text-decoration-none fw-medium">Mot de passe oublié ?</Link>
+                </div>
               </Form>
             </Card.Body>
           </Card>
